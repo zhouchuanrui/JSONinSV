@@ -10,6 +10,14 @@
 
 package json_pkg;
     `include "json_macros.svh"
+
+    // JSON status enumerate
+    typedef enum {
+        PARSE_OK = 0,
+        PARSE_INVALID_VALUE,
+        PARSE_MISS_QUOTATION_MARK
+    } JSONStatus;
+
     `include "JSONUtils.svh"
     `include "JSONValue.svh"
 endpackage

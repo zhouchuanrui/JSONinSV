@@ -25,13 +25,6 @@ class JSONValue;
     } JSONType;
     JSONType this_type;
 
-    // JSON status enumerate
-    typedef enum {
-        PARSE_OK = 0,
-        PARSE_INVALID_VALUE,
-        PARSE_MISS_QUOTATION_MARK
-    } JSONStatus;
-
     function new(depth = 0, );
         this_type = JSON_NULL;
         this_depth = 0;
@@ -67,19 +60,48 @@ class JSONValue;
     extern JSONStatus dumpToFile(string json_file);
 
     // internal methods
-    extern JSONStatus parseValue(JSONValue jv, JSONContext jc);
-    extern JSONStatus parseWhiteSpace(JSONContext jc);
-    extern JSONStatus parseObject(JSONStatus jv, JSONContext jc);
-    extern JSONStatus parseArray(JSONStatus jv, JSONContext jc);
-    extern JSONStatus parseString(JSONStatus jv, JSONContext jc);
-    extern JSONStatus parseNumber(JSONStatus jv, JSONContext jc);
-    extern JSONStatus parseNull(JSONStatus jv, JSONContext jc);
-    extern JSONStatus parseTrue(JSONStatus jv, JSONContext jc);
-    extern JSONStatus parseFalse(JSONStatus jv, JSONContext jc);
+    extern JSONStatus parseValue(JSONContext jc);
+    extern JSONStatus parseObject(JSONContext jc);
+    extern JSONStatus parseArray(JSONContext jc);
+    extern JSONStatus parseString(JSONContext jc);
+    extern JSONStatus parseNumber(JSONContext jc);
+    extern JSONStatus parseNull(JSONContext jc);
+    extern JSONStatus parseTrue(JSONContext jc);
+    extern JSONStatus parseFalse(JSONContext jc);
 
 endclass: JSONValue
 
 function JSONStatus JSONValue::loads (string json_txt);
+    JSONStatus ret;
     JSONContext ctx = new(json_txt);
+    ctx.skipWhiteSpace();
+    ret = parseValue(ctx);
+    if (ret == PARSE_OK) begin
+        ctx.skipWhiteSpace();
+        if (ctx.isEnd() == 0) begin
+            ret = PARSE_ROOT_NOT_SINGULAR;
+        end
+    end
+    return ret;
 endfunction
 
+int lept_parse(lept_value* v, const char* json) {
+    lept_context c;
+    int ret;
+    assert(v != NULL);
+    c.json = json;
+    c.stack = NULL;
+    c.size = c.top = 0;
+    lept_init(v);
+    lept_parse_whitespace(&c);
+    if ((ret = lept_parse_value(&c, v)) == LEPT_PARSE_OK) {
+        lept_parse_whitespace(&c);
+        if (*c.json != '\0') {
+            v->type = LEPT_NULL;
+            ret = LEPT_PARSE_ROOT_NOT_SINGULAR;
+        }
+    }
+    assert(c.top == 0);
+    free(c.stack);
+    return ret;
+}

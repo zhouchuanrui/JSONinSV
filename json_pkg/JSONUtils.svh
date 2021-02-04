@@ -27,6 +27,7 @@ class JSONContext;
     extern byte popChar();
     extern string getSubString(int idx_st, int idx_end);
     extern void skipWhiteSpace();
+    extern bit isEnd();
 
 endclass: JSONContext
 
@@ -45,49 +46,17 @@ function string JSONContext::getSubString (
 endfunction: JSONContext::getSubString
 
 function void JSONContext::skipWhiteSpace ();
-    while( peekChar() inside [
+    while( this.json_txt[this.current_idx] inside [
         8'h20, // white space
         8'h09, // tab
         8'h0a, // \n
         8'h0d  // \r 
     ]) begin
-        current_idx++;
+        this.current_idx++;
     end
 endfunction: skipWhiteSpace
 
-static void lept_parse_whitespace(lept_context* c) {
-    const char *p = c->json;
-    while (*p == ' ' || *p == '\t' || *p == '\n' || *p == '\r')
-        p++;
-    c->json = p;
-}
-
-class JSONTop;
-
-    function new();
-    endfunction
-
-    // parser APIs
-    extern JSONStatus loads(string json_txt);
-    extern JSONStatus loadFromFile(string json_file);
-
-    // dumper APIs
-    extern JSONStatus dumps(ref string json_txt);
-    extern JSONStatus dumpToFile(string json_file);
-
-    // internal properties
-    extern JSONStatus parseValue(JSONValue jv, JSONContext jc);
-    extern JSONStatus parseWhiteSpace(JSONContext jc);
-    extern JSONStatus parseObject(JSONStatus jv, JSONContext jc);
-    extern JSONStatus parseArray(JSONStatus jv, JSONContext jc);
-    extern JSONStatus parseString(JSONStatus jv, JSONContext jc);
-    extern JSONStatus parseNumber(JSONStatus jv, JSONContext jc);
-    extern JSONStatus parseNull(JSONStatus jv, JSONContext jc);
-    extern JSONStatus parseTrue(JSONStatus jv, JSONContext jc);
-    extern JSONStatus parseFalse(JSONStatus jv, JSONContext jc);
-
-endclass: JSONTop
-
-function JSONStatus JSONTop::loads (string json_txt);
-endfunction
+function bit JSONContext::isEnd ();
+    return this.current_idx >= this.json_txt.len();
+endfunction: JSONContext::isEnd
 
