@@ -25,6 +25,10 @@ class JSONValue;
     } JSONType;
     JSONType this_type;
 
+    static const string null_literal = "null";
+    static const string true_literal = "true";
+    static const string false_literal = "false";
+    
     function new(depth = 0, );
         this_type = JSON_NULL;
         this_depth = 0;
@@ -84,4 +88,154 @@ function JSONStatus JSONValue::loads (string json_txt);
     end
     return ret;
 endfunction
+
+function JSONStatus JSONValue::parseValue (JSONContext jc);
+    if (jc.isEnd()) begin
+        return PARSE_NO_VALUE;
+    end
+    case(jc.peekChar())
+        "t": return parseTrue(jc);
+        "f": return parseFalse(jc);
+        "n": return parseNull(jc);
+        "\"": return parseString(jc);
+        "[": return parseArray(jc);
+        "{": return parseObject(jc);
+        default: return parseNumber(jc);
+    endcase
+endfunction: JSONValue::parseValue
+
+function JSONStatus JSONValue::parseTrue (JSONContext jc);
+    for (int i=0; i < true_literal.len(); i++) begin
+        if (jc.popChar() != true_literal[i]) begin
+            return PARSE_INVALID_VALUE;
+        end
+    end
+    this.setTrue();
+endfunction: JSONValue::parseTrue
+
+function JSONStatus JSONValue::parseFalse (JSONContext jc);
+    for (int i=0; i < false_literal.len(); i++) begin
+        if (jc.popChar() != false_literal[i]) begin
+            return PARSE_INVALID_VALUE;
+        end
+    end
+    this.setFalse();
+endfunction: JSONValue::parseFalse
+
+function JSONStatus JSONValue::parseNull (JSONContext jc);
+    for (int i=0; i < null_literal.len(); i++) begin
+        if (jc.popChar() != null_literal[i]) begin
+            return PARSE_INVALID_VALUE;
+        end
+    end
+    this.setNull();
+endfunction: JSONValue::parseNull
+
+function JSONStatus JSONValue::parseNumber (
+    JSONContext jc
+);
+    int idx_st, idx_end;
+    byte this_char;
+    idx_st = jc.getIndex();
+    if (jc.peekChar() == "-") begin
+        jc.incIndex();
+    end
+    `define _isDigit(_ch) ((_ch) >= "0" && (_ch) <= "9")
+
+    if (jc.peekChar() == "0") begin
+        jc.incIndex();
+    end else begin
+        this_char = jc.popChar();
+        // following char should be inside {"1" ~ "9"}
+        if (!(this_char >= "1" && this_char <= "9")) begin
+            return PARSE_INVALID_VALUE;
+        end
+        while (_isDigit(jc.peekChar())) begin
+            jc.incIndex();
+        end
+    end
+    if (jc.peekChar() == ".") begin
+        jc.incIndex();
+        if (!_isDigit(jc.popChar())) begin
+            return PARSE_INVALID_VALUE;
+        end
+        while (_isDigit(jc.peekChar())) begin
+            jc.incIndex();
+        end
+    end
+    this_char = jc.peekChar();
+    if (this_char == "e" || this_char == "E") begin
+        jc.incIndex();
+        this_char = jc.peekChar();
+        if (this_char == "+" || this_char == "-") begin
+            jc.incIndex();
+        end
+        this_char = jc.popChar();
+        if (!_isDigit(this_char)) begin
+            return PARSE_INVALID_VALUE;
+        end
+        while (_isDigit(jc.peekChar())) begin
+            jc.incIndex();
+        end
+    end
+    idx_end = jc.getIndex();
+    this.setNumber(jc.getSubString(idx_st, idx_end).atoreal());
+    return PARSE_OK;
+    `undef _isDigit
+endfunction: JSONValue::parseNumber
+
+function JSONStatus JSONValue::parseString (
+    JSONContext jc
+);
+    
+endfunction: JSONValue::parseString
+
+function void JSONValue::setNull ();
+    this_type = JSON_NULL;
+endfunction: JSONValue::setNull
+
+function void JSONValue::setTrue ();
+    this_type = JSON_TRUE;
+endfunction: JSONValue::setTrue
+
+function void JSONValue::setFalse ();
+    this_type = JSON_FALSE;
+endfunction: JSONValue::setFalse
+
+function void JSONValue::setNumber (
+    real number
+);
+    this_type = JSON_NUMBER;
+    this_number = number;
+endfunction: JSONValue::setNumber
+
+function void JSONValue::setString (
+    string str
+);
+    this_type = JSON_STRING;
+    this_string = str;
+endfunction: JSONValue::setString
+
+function void JSONValue::setObject ();
+    this_type = JSON_OBJECT;
+endfunction: setObject 
+
+function void JSONValue::addMemberToObject (
+    string key, JSONValue val
+);
+    if (this_object.exists(key)) begin
+        `JSON_WARN("Member with key: %s exists in this object. Parser would override it!!", key)
+    end
+    this_object[key] = value;
+endfunction: JSONValue::addMemberToObject
+
+function void JSONValue::setArray ();
+    this_type = JSON_ARRAY;
+endfunction: JSONValue::setArray
+
+function void JSONValue::addValueToArray (
+    JSONValue val
+);
+    this_array.push_back(val);
+endfunction: JSONValue::addval
 

@@ -15,7 +15,10 @@ package json_pkg;
     typedef enum {
         PARSE_OK = 0,
         PARSE_INVALID_VALUE,
-        PARSE_MISS_QUOTATION_MARK
+        PARSE_MISS_QUOTATION_MARK,
+        PARSE_ROOT_NOT_SINGULAR,
+        PARSE_NO_VALUE,
+        RSV
     } JSONStatus;
 
     `include "JSONUtils.svh"
