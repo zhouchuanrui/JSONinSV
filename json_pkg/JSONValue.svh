@@ -85,23 +85,3 @@ function JSONStatus JSONValue::loads (string json_txt);
     return ret;
 endfunction
 
-int lept_parse(lept_value* v, const char* json) {
-    lept_context c;
-    int ret;
-    assert(v != NULL);
-    c.json = json;
-    c.stack = NULL;
-    c.size = c.top = 0;
-    lept_init(v);
-    lept_parse_whitespace(&c);
-    if ((ret = lept_parse_value(&c, v)) == LEPT_PARSE_OK) {
-        lept_parse_whitespace(&c);
-        if (*c.json != '\0') {
-            v->type = LEPT_NULL;
-            ret = LEPT_PARSE_ROOT_NOT_SINGULAR;
-        }
-    }
-    assert(c.top == 0);
-    free(c.stack);
-    return ret;
-}
