@@ -29,9 +29,9 @@ class JSONValue;
     static const string true_literal = "true";
     static const string false_literal = "false";
     
-    function new(depth = 0, );
+    function new(depth = 0);
         this_type = JSON_NULL;
-        this_depth = 0;
+        this_depth = depth;
     endfunction
 
     // internal properties
@@ -189,6 +189,80 @@ function JSONStatus JSONValue::parseString (
 );
     
 endfunction: JSONValue::parseString
+
+static int lept_parse_array(lept_context* c, lept_value* v) {
+    size_t i, size = 0;
+    int ret;
+    EXPECT(c, '[');
+    lept_parse_whitespace(c);
+    if (*c->json == ']') {
+        c->json++;
+        lept_set_array(v, 0);
+        return LEPT_PARSE_OK;
+    }
+    for (;;) {
+        lept_value e;
+        lept_init(&e);
+        if ((ret = lept_parse_value(c, &e)) != LEPT_PARSE_OK)
+            break;
+        memcpy(lept_context_push(c, sizeof(lept_value)), &e, sizeof(lept_value));
+        size++;
+        lept_parse_whitespace(c);
+        if (*c->json == ',') {
+            c->json++;
+            lept_parse_whitespace(c);
+        }
+        else if (*c->json == ']') {
+            c->json++;
+            lept_set_array(v, size);
+            memcpy(v->u.a.e, lept_context_pop(c, size * sizeof(lept_value)), size * sizeof(lept_value));
+            v->u.a.size = size;
+            return LEPT_PARSE_OK;
+        }
+        else {
+            ret = LEPT_PARSE_MISS_COMMA_OR_SQUARE_BRACKET;
+            break;
+        }
+    }
+    /* Pop and free values on the stack */
+    for (i = 0; i < size; i++)
+        lept_free((lept_value*)lept_context_pop(c, sizeof(lept_value)));
+    return ret;
+}
+
+function JSONStatus JSONValue::parseArray (
+    JSONContext jc
+);
+    JSONStatus ret;
+    this.setArray();
+    jc.incIndex();
+    jc.skipWhiteSpace();
+    if (jc.peekChar() == "]") begin
+        jc.incIndex();
+        return PARSE_OK;
+    end
+    JSONValue val;
+    while (1) begin
+        val = new(this_depth+1);
+        ret = parseValue(jc);
+        if (ret != PARSE_OK) begin
+            break;
+        end
+        jc.skipWhiteSpace();
+        if (jc.peekChar() == ",") begin
+            jc.incIndex();
+            jc.skipWhiteSpace();
+        end else if (jc.peekChar() == "]") begin
+            jc.incIndex();
+            return PARSE_OK;
+        end else begin
+            ret = PARSE_MISS_COMMA_OR_SQUARE_BRACKET;
+            break;
+        end
+    end
+    return ret;
+endfunction: JSONValue::parseArray
+
 
 function void JSONValue::setNull ();
     this_type = JSON_NULL;

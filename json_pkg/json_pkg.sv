@@ -14,9 +14,10 @@ package json_pkg;
     // JSON status enumerate
     typedef enum {
         PARSE_OK = 0,
+        PARSE_ROOT_NOT_SINGULAR,
         PARSE_INVALID_VALUE,
         PARSE_MISS_QUOTATION_MARK,
-        PARSE_ROOT_NOT_SINGULAR,
+        PARSE_MISS_COMMA_OR_SQUARE_BRACKET,
         PARSE_NO_VALUE,
         RSV
     } JSONStatus;
