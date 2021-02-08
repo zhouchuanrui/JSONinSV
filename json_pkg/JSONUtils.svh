@@ -19,7 +19,6 @@ class JSONContext;
 
     // internal properties
     protected string json_txt;
-    //string json_buf;
     protected int current_idx;
 
     // APIs

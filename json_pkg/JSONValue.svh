@@ -72,6 +72,7 @@ class JSONValue;
     extern JSONStatus parseNull(JSONContext jc);
     extern JSONStatus parseTrue(JSONContext jc);
     extern JSONStatus parseFalse(JSONContext jc);
+    extern JSONStatus parseStringLiteral(JSONContext jc, ref string str);
 
 endclass: JSONValue
 
@@ -184,16 +185,69 @@ function JSONStatus JSONValue::parseNumber (
     `undef _isDigit
 endfunction: JSONValue::parseNumber
 
+function JSONStatus JSONValue::parseStringLiteral (
+    JSONContext jc,
+    ref string str
+);
+    byte str_q[$];
+    byte this_char;
+    jc.incIndex();
+    while (1) begin
+        this_char = jc.popChar();
+        case(this_char)
+            "\"": begin
+                str = {>>{str_q}};
+                return PARSE_OK;
+            end
+            "\\": begin // back-slash parse
+                this_char = jc.popChar();
+                case (this_char) 
+                    "\"": begin
+                        str_q.push_back(this_char);
+                    end
+                    "\n": begin
+                        str_q.push_back(this_char);
+                    end
+                    "\\": begin
+                        str_q.push_back(this_char);
+                    end
+                    "\t": begin
+                        str_q.push_back(this_char);
+                    end
+                    "\f": begin
+                        str_q.push_back(this_char);
+                    end
+                endcase
+            end
+            0: begin
+                if (jc.isEnd()) begin
+                    PARSE_MISS_QUOTATION_MARK;
+                end
+            end
+            default: begin
+                str_q.push_back(this_char);
+            end
+        endcase
+    end
+endfunction: JSONValue::parseStringLiteral
+
 function JSONStatus JSONValue::parseString (
     JSONContext jc
 );
-    
+    JSONStatus ret;
+    string str;
+    ret = parseStringLiteral(jc, str);
+    if (ret == PARSE_OK) begin
+        setString(str);
+    end
+    return ret;
 endfunction: JSONValue::parseString
 
 function JSONStatus JSONValue::parseArray (
     JSONContext jc
 );
     JSONStatus ret;
+    JSONValue val;
     this.setArray();
     jc.incIndex();
     jc.skipWhiteSpace();
@@ -201,10 +255,9 @@ function JSONStatus JSONValue::parseArray (
         jc.incIndex();
         return PARSE_OK;
     end
-    JSONValue val;
     while (1) begin
         val = new(this_depth+1);
-        ret = parseValue(jc);
+        ret = val.parseValue(jc);
         if (ret != PARSE_OK) begin
             break;
         end
@@ -223,6 +276,122 @@ function JSONStatus JSONValue::parseArray (
     return ret;
 endfunction: JSONValue::parseArray
 
+static int lept_parse_object(lept_context* c, lept_value* v) {
+    size_t i, size;
+    lept_member m;
+    int ret;
+    EXPECT(c, '{');
+    lept_parse_whitespace(c);
+    if (*c->json == '}') {
+        c->json++;
+        lept_set_object(v, 0);
+        return LEPT_PARSE_OK;
+    }
+    m.k = NULL;
+    size = 0;
+    for (;;) {
+        char* str;
+        lept_init(&m.v);
+        /* parse key */
+        if (*c->json != '"') {
+            ret = LEPT_PARSE_MISS_KEY;
+            break;
+        }
+        if ((ret = lept_parse_string_raw(c, &str, &m.klen)) != LEPT_PARSE_OK)
+            break;
+        memcpy(m.k = (char*)malloc(m.klen + 1), str, m.klen);
+        m.k[m.klen] = '\0';
+        /* parse ws colon ws */
+        lept_parse_whitespace(c);
+        if (*c->json != ':') {
+            ret = LEPT_PARSE_MISS_COLON;
+            break;
+        }
+        c->json++;
+        lept_parse_whitespace(c);
+        /* parse value */
+        if ((ret = lept_parse_value(c, &m.v)) != LEPT_PARSE_OK)
+            break;
+        memcpy(lept_context_push(c, sizeof(lept_member)), &m, sizeof(lept_member));
+        size++;
+        m.k = NULL; /* ownership is transferred to member on stack */
+        /* parse ws [comma | right-curly-brace] ws */
+        lept_parse_whitespace(c);
+        if (*c->json == ',') {
+            c->json++;
+            lept_parse_whitespace(c);
+        }
+        else if (*c->json == '}') {
+            c->json++;
+            lept_set_object(v, size);
+            memcpy(v->u.o.m, lept_context_pop(c, sizeof(lept_member) * size), sizeof(lept_member) * size);
+            v->u.o.size = size;
+            return LEPT_PARSE_OK;
+        }
+        else {
+            ret = LEPT_PARSE_MISS_COMMA_OR_CURLY_BRACKET;
+            break;
+        }
+    }
+    /* Pop and free members on the stack */
+    free(m.k);
+    for (i = 0; i < size; i++) {
+        lept_member* m = (lept_member*)lept_context_pop(c, sizeof(lept_member));
+        free(m->k);
+        lept_free(&m->v);
+    }
+    v->type = LEPT_NULL;
+    return ret;
+}
+
+function JSONStatus JSONValue::parseObject (
+    JSONContext jc
+);
+    string this_key;
+    JSONValue val;
+    JSONStatus ret;
+    this.setObject();
+
+    jc.skipWhiteSpace();
+    if (jc.peekChar() == "}") begin
+        jc.incIndex();
+        return PARSE_OK;
+    end
+    while(1) begin
+        if (jc.peekChar() != "\"") begin
+            ret = PARSE_MISS_KEY;
+            break;
+        end
+        ret = parseStringLiteral(jc, str);
+        if (ret != PARSE_OK) begin
+            break;
+        end
+        jc.skipWhiteSpace();
+        if (jc.peekChar() != ":") begin
+            ret = PARSE_MISS_COLON;
+            break;
+        end
+        jc.skipWhiteSpace();
+        val = new(this_depth+1);
+        ret = val.parseValue(jc);
+        if (ret != PARSE_OK) begin
+            break;
+        end
+        this.addMemberToObject(str, val);
+        jc.skipWhiteSpace();
+        if (jc.peekChar() == ",") begin
+            jc.incIndex();
+            jc.skipWhiteSpace();
+        end else if (jc.peekChar() == "}") begin
+            jc.incIndex();
+            return PARSE_OK;
+        end else begin
+            ret = PARSE_MISS_COMMA_OR_CURLY_BRACKET;
+            break;
+        end
+    end
+    return ret;
+endfunction: JSONValue::parseob
 
 function void JSONValue::setNull ();
     this_type = JSON_NULL;
