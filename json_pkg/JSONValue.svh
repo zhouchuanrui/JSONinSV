@@ -29,11 +29,6 @@ class JSONValue;
     static const string true_literal = "true";
     static const string false_literal = "false";
     
-    function new(depth = 0);
-        this_type = JSON_NULL;
-        this_depth = depth;
-    endfunction
-
     // internal properties
     protected JSONValue this_object[string];
     protected JSONValue this_array[$];
@@ -41,38 +36,43 @@ class JSONValue;
     protected real this_number;
     protected int this_depth; // depth of this value node, starts from 0
 
-    // APIs
-    extern JSONType getType();
-    extern string getTypeString();
+    function new(depth = 0);
+        this_type = JSON_NULL;
+        this_depth = depth;
+    endfunction
 
-    extern void setNull();
-    extern void setTrue();
-    extern void setFalse();
-    extern void setNumber(real number);
-    extern void setString(string str);
-    extern void setObject();
-    extern void addMemberToObject(string key, JSONValue val);
-    extern void setArray();
-    extern void addValueToArray();
+    // APIs
+    //extern function JSONType getType();
+    extern function string getTypeString();
+
+    extern function void setNull();
+    extern function void setTrue();
+    extern function void setFalse();
+    extern function void setNumber(real number);
+    extern function void setString(string str);
+    extern function void setObject();
+    extern function void addMemberToObject(string key, JSONValue val);
+    extern function void setArray();
+    extern function void addValueToArray(JSONValue val);
 
     // parser APIs
-    extern JSONStatus loads(string json_txt);
-    extern JSONStatus loadFromFile(string json_file);
+    extern function JSONStatus loads(string json_txt);
+    extern function JSONStatus loadFromFile(string json_file);
 
     // dumper APIs
-    extern JSONStatus dumps(ref string json_txt);
-    extern JSONStatus dumpToFile(string json_file);
+    extern function JSONStatus dumps(ref string json_txt);
+    extern function JSONStatus dumpToFile(string json_file);
 
     // internal methods
-    extern JSONStatus parseValue(JSONContext jc);
-    extern JSONStatus parseObject(JSONContext jc);
-    extern JSONStatus parseArray(JSONContext jc);
-    extern JSONStatus parseString(JSONContext jc);
-    extern JSONStatus parseNumber(JSONContext jc);
-    extern JSONStatus parseNull(JSONContext jc);
-    extern JSONStatus parseTrue(JSONContext jc);
-    extern JSONStatus parseFalse(JSONContext jc);
-    extern JSONStatus parseStringLiteral(JSONContext jc, ref string str);
+    extern function JSONStatus parseValue(JSONContext jc);
+    extern function JSONStatus parseObject(JSONContext jc);
+    extern function JSONStatus parseArray(JSONContext jc);
+    extern function JSONStatus parseString(JSONContext jc);
+    extern function JSONStatus parseNumber(JSONContext jc);
+    extern function JSONStatus parseNull(JSONContext jc);
+    extern function JSONStatus parseTrue(JSONContext jc);
+    extern function JSONStatus parseFalse(JSONContext jc);
+    extern function JSONStatus parseStringLiteral(JSONContext jc, ref string str);
 
 endclass: JSONValue
 
@@ -89,6 +89,8 @@ function JSONStatus JSONValue::loads (string json_txt);
     end
     return ret;
 endfunction
+/*
+* */
 
 function JSONStatus JSONValue::parseValue (JSONContext jc);
     if (jc.isEnd()) begin
@@ -151,16 +153,16 @@ function JSONStatus JSONValue::parseNumber (
         if (!(this_char >= "1" && this_char <= "9")) begin
             return PARSE_INVALID_VALUE;
         end
-        while (_isDigit(jc.peekChar())) begin
+        while (`_isDigit(jc.peekChar())) begin
             jc.incIndex();
         end
     end
     if (jc.peekChar() == ".") begin
         jc.incIndex();
-        if (!_isDigit(jc.popChar())) begin
+        if (!`_isDigit(jc.popChar())) begin
             return PARSE_INVALID_VALUE;
         end
-        while (_isDigit(jc.peekChar())) begin
+        while (`_isDigit(jc.peekChar())) begin
             jc.incIndex();
         end
     end
@@ -172,10 +174,10 @@ function JSONStatus JSONValue::parseNumber (
             jc.incIndex();
         end
         this_char = jc.popChar();
-        if (!_isDigit(this_char)) begin
+        if (!`_isDigit(this_char)) begin
             return PARSE_INVALID_VALUE;
         end
-        while (_isDigit(jc.peekChar())) begin
+        while (`_isDigit(jc.peekChar())) begin
             jc.incIndex();
         end
     end
@@ -221,7 +223,7 @@ function JSONStatus JSONValue::parseStringLiteral (
             end
             0: begin
                 if (jc.isEnd()) begin
-                    PARSE_MISS_QUOTATION_MARK;
+                    return PARSE_MISS_QUOTATION_MARK;
                 end
             end
             default: begin
@@ -276,74 +278,6 @@ function JSONStatus JSONValue::parseArray (
     return ret;
 endfunction: JSONValue::parseArray
 
-static int lept_parse_object(lept_context* c, lept_value* v) {
-    size_t i, size;
-    lept_member m;
-    int ret;
-    EXPECT(c, '{');
-    lept_parse_whitespace(c);
-    if (*c->json == '}') {
-        c->json++;
-        lept_set_object(v, 0);
-        return LEPT_PARSE_OK;
-    }
-    m.k = NULL;
-    size = 0;
-    for (;;) {
-        char* str;
-        lept_init(&m.v);
-        /* parse key */
-        if (*c->json != '"') {
-            ret = LEPT_PARSE_MISS_KEY;
-            break;
-        }
-        if ((ret = lept_parse_string_raw(c, &str, &m.klen)) != LEPT_PARSE_OK)
-            break;
-        memcpy(m.k = (char*)malloc(m.klen + 1), str, m.klen);
-        m.k[m.klen] = '\0';
-        /* parse ws colon ws */
-        lept_parse_whitespace(c);
-        if (*c->json != ':') {
-            ret = LEPT_PARSE_MISS_COLON;
-            break;
-        }
-        c->json++;
-        lept_parse_whitespace(c);
-        /* parse value */
-        if ((ret = lept_parse_value(c, &m.v)) != LEPT_PARSE_OK)
-            break;
-        memcpy(lept_context_push(c, sizeof(lept_member)), &m, sizeof(lept_member));
-        size++;
-        m.k = NULL; /* ownership is transferred to member on stack */
-        /* parse ws [comma | right-curly-brace] ws */
-        lept_parse_whitespace(c);
-        if (*c->json == ',') {
-            c->json++;
-            lept_parse_whitespace(c);
-        }
-        else if (*c->json == '}') {
-            c->json++;
-            lept_set_object(v, size);
-            memcpy(v->u.o.m, lept_context_pop(c, sizeof(lept_member) * size), sizeof(lept_member) * size);
-            v->u.o.size = size;
-            return LEPT_PARSE_OK;
-        }
-        else {
-            ret = LEPT_PARSE_MISS_COMMA_OR_CURLY_BRACKET;
-            break;
-        }
-    }
-    /* Pop and free members on the stack */
-    free(m.k);
-    for (i = 0; i < size; i++) {
-        lept_member* m = (lept_member*)lept_context_pop(c, sizeof(lept_member));
-        free(m->k);
-        lept_free(&m->v);
-    }
-    v->type = LEPT_NULL;
-    return ret;
-}
-
 function JSONStatus JSONValue::parseObject (
     JSONContext jc
 );
@@ -362,7 +296,7 @@ function JSONStatus JSONValue::parseObject (
             ret = PARSE_MISS_KEY;
             break;
         end
-        ret = parseStringLiteral(jc, str);
+        ret = parseStringLiteral(jc, this_key);
         if (ret != PARSE_OK) begin
             break;
         end
@@ -377,7 +311,7 @@ function JSONStatus JSONValue::parseObject (
         if (ret != PARSE_OK) begin
             break;
         end
-        this.addMemberToObject(str, val);
+        this.addMemberToObject(this_key, val);
         jc.skipWhiteSpace();
         if (jc.peekChar() == ",") begin
             jc.incIndex();
@@ -391,7 +325,7 @@ function JSONStatus JSONValue::parseObject (
         end
     end
     return ret;
-endfunction: JSONValue::parseob
+endfunction: JSONValue::parseObject
 
 function void JSONValue::setNull ();
     this_type = JSON_NULL;
@@ -427,9 +361,9 @@ function void JSONValue::addMemberToObject (
     string key, JSONValue val
 );
     if (this_object.exists(key)) begin
-        `JSON_WARN("Member with key: %s exists in this object. Parser would override it!!", key)
+        `JSON_WARN($sformatf("Member with key: %s exists in this object. Parser would override it!!", key))
     end
-    this_object[key] = value;
+    this_object[key] = val;
 endfunction: JSONValue::addMemberToObject
 
 function void JSONValue::setArray ();
@@ -440,5 +374,31 @@ function void JSONValue::addValueToArray (
     JSONValue val
 );
     this_array.push_back(val);
-endfunction: JSONValue::addval
+endfunction: JSONValue::addValueToArray
+
+//function JSONType JSONValue::getType ();
+    //return this_type;
+//endfunction
+
+function string JSONValue::getTypeString ();
+    return this_type.name();
+endfunction: getTypeString
+
+function JSONStatus JSONValue::loadFromFile (
+    string json_file
+);
+    return PARSE_OK;
+endfunction: loadFromFile
+
+function JSONStatus JSONValue::dumps (
+    ref string json_txt
+);
+    return PARSE_OK;
+endfunction: dumps
+
+function JSONStatus JSONValue::dumpToFile (
+    string json_file
+);
+    return PARSE_OK;
+endfunction: JSONValue::dumpToFile
 

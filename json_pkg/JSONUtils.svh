@@ -8,8 +8,6 @@
 //2021/1/26 7:35:59: created
 //
 
-typedef class JSONValue;
-
 class JSONContext;
     
     function new(string json_txt = "NULL");
@@ -22,13 +20,13 @@ class JSONContext;
     protected int current_idx;
 
     // APIs
-    extern byte peekChar();
-    extern byte popChar();
-    extern int getIndex();
-    extern void incIndex();
-    extern string getSubString(int idx_st, int idx_end);
-    extern void skipWhiteSpace();
-    extern bit isEnd();
+    extern function byte peekChar();
+    extern function byte popChar();
+    extern function int getIndex();
+    extern function void incIndex();
+    extern function string getSubString(int idx_st, int idx_end);
+    extern function void skipWhiteSpace();
+    extern function bit isEnd();
 
 endclass: JSONContext
 
@@ -38,7 +36,7 @@ endfunction: JSONContext::getIndex
 
 function void JSONContext::incIndex ();
     current_idx++;
-endfunction: JSONContext::incin
+endfunction: JSONContext::incIndex
 
 function byte JSONContext::peekChar ();
     return this.json_txt[this.current_idx];

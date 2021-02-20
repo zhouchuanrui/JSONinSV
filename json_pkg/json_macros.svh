@@ -8,8 +8,15 @@
 //2021/1/26 7:31:43: created
 //
 
-`define JSON_LOG()
-`define JSON_WARN()
-`define JSON_ERROR()
-`define JSON_FATAL()
+`define JSON_LOG(prt_str)  \
+$display({"[JSON_LOG]", prt_str});
+
+`define JSON_WARN(prt_str) \
+$display({"[JSON_WARN]", prt_str});
+
+`define JSON_ERROR(prt_str) \
+$display({"[JSON_ERROR]", prt_str});
+
+`define JSON_FATAL(prt_str) \
+$display({"[JSON_FATAL]", prt_str});
 
