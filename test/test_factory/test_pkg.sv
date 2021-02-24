@@ -12,6 +12,7 @@ package test_pkg;
     import json_pkg::JSONValue;
 
     `include "TestFactory.svh"
+    `include "TestUtils.svh"
     `include "json_literal_test.svh"
     `include "json_string_test.svh"
     `include "json_number_test.svh"

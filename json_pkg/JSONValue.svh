@@ -42,7 +42,7 @@ class JSONValue;
     endfunction
 
     // APIs
-    //extern function JSONType getType();
+    extern function JSONType getType();
     extern function string getTypeString();
 
     extern function void setNull();
@@ -376,9 +376,9 @@ function void JSONValue::addValueToArray (
     this_array.push_back(val);
 endfunction: JSONValue::addValueToArray
 
-//function JSONType JSONValue::getType ();
-    //return this_type;
-//endfunction
+function JSONValue::JSONType JSONValue::getType ();
+    return this_type;
+endfunction
 
 function string JSONValue::getTypeString ();
     return this_type.name();
