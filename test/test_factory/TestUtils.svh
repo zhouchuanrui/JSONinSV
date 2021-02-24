@@ -30,3 +30,17 @@ end while(0);
 `define EXPECT_EQ_DOUBLE(expect, actual) `EXPECT_EQ_BASE((expect)==(actual), expect, actual, "%.17g")
 `define EXPECT_EQ_STRING(expect, actual) `EXPECT_EQ_BASE((expect)==(actual), expect, actual, "%s")
 
+`define EXPECT_NEQ_BASE(equality, expect, actual, format) \
+do begin \
+    if ((equality) == 0) begin \
+        TestStat::pass_cnt++; \
+    end else begin \
+        TestStat::fail_cnt++; \
+        $display({"[ASSERT_FAIL]", "expect: ", format, " actual: ", format}, expect, actual); \
+    end \
+end while(0);
+
+`define EXPECT_NEQ_INT(expect, actual) `EXPECT_NEQ_BASE((expect)==(actual), expect, actual, "%d")
+`define EXPECT_NEQ_DOUBLE(expect, actual) `EXPECT_NEQ_BASE((expect)==(actual), expect, actual, "%.17g")
+`define EXPECT_NEQ_STRING(expect, actual) `EXPECT_NEQ_BASE((expect)==(actual), expect, actual, "%s")
+

@@ -20,6 +20,9 @@ class json_literal_test extends TestPrototype;
         `EXPECT_EQ_INT(JSONValue::JSON_NULL, jv.getType())
         `EXPECT_EQ_STRING("JSON_NULL", jv.getTypeString())
 
+        `EXPECT_NEQ_INT(json_pkg::PARSE_OK, jv.loads("NULL"))
+        `EXPECT_NEQ_INT(json_pkg::PARSE_OK, jv.loads("Null"))
+
         TestStat::report();
     endtask
 
