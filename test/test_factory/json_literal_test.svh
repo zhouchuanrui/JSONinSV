@@ -23,6 +23,18 @@ class json_literal_test extends TestPrototype;
         `EXPECT_NEQ_INT(json_pkg::PARSE_OK, jv.loads("NULL"))
         `EXPECT_NEQ_INT(json_pkg::PARSE_OK, jv.loads("Null"))
 
+        `EXPECT_EQ_INT(json_pkg::PARSE_OK, jv.loads("true"))
+        `EXPECT_EQ_INT(JSONValue::JSON_TRUE, jv.getType())
+        `EXPECT_EQ_STRING("JSON_TRUE", jv.getTypeString())
+        `EXPECT_NEQ_INT(json_pkg::PARSE_OK, jv.loads("TRUE"))
+        `EXPECT_NEQ_INT(json_pkg::PARSE_OK, jv.loads("True"))
+
+        `EXPECT_EQ_INT(json_pkg::PARSE_OK, jv.loads("false"))
+        `EXPECT_EQ_INT(JSONValue::JSON_FALSE, jv.getType())
+        `EXPECT_EQ_STRING("JSON_FALSE", jv.getTypeString())
+        `EXPECT_NEQ_INT(json_pkg::PARSE_OK, jv.loads("FALSE"))
+        `EXPECT_NEQ_INT(json_pkg::PARSE_OK, jv.loads("False"))
+
         TestStat::report();
     endtask
 
