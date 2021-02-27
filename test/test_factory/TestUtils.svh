@@ -16,13 +16,15 @@ class TestStat;
     endfunction: report
 endclass
 
+`define REPORT_TEST(args) TestStat::report();
+
 `define EXPECT_EQ_BASE(equality, expect, actual, format) \
 do begin \
     if ((equality) == 1) begin \
         TestStat::pass_cnt++; \
     end else begin \
         TestStat::fail_cnt++; \
-        $display({"[ASSERT_FAIL]", "expect: ", format, " actual: ", format}, expect, actual); \
+        $display($sformatf("[ASSERT_FAIL] expect: %s actual %s", format, format), expect, actual); \
     end \
 end while(0);
 

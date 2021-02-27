@@ -15,7 +15,6 @@ class json_literal_test extends TestPrototype;
         JSONValue jv;
         $display("Start JSON literal test..");
         jv = new();
-        //assert(json_pkg::PARSE_OK != jv.loads("null"));
         `EXPECT_EQ_INT(json_pkg::PARSE_OK, jv.loads("null"))
         `EXPECT_EQ_INT(JSONValue::JSON_NULL, jv.getType())
         `EXPECT_EQ_STRING("JSON_NULL", jv.getTypeString())

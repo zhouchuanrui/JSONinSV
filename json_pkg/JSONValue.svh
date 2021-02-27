@@ -55,6 +55,9 @@ class JSONValue;
     extern function void setArray();
     extern function void addValueToArray(JSONValue val);
 
+    extern function real getNumber ();
+    extern function string getString ();
+
     // parser APIs
     extern function JSONStatus loads(string json_txt);
     extern function JSONStatus loadFromFile(string json_file);
@@ -182,7 +185,7 @@ function JSONStatus JSONValue::parseNumber (
         end
     end
     idx_end = jc.getIndex();
-    this.setNumber(jc.getSubString(idx_st, idx_end).atoreal());
+    this.setNumber(jc.getSubString(idx_st, idx_end-1).atoreal());
     return PARSE_OK;
     `undef _isDigit
 endfunction: JSONValue::parseNumber
@@ -383,6 +386,24 @@ endfunction
 function string JSONValue::getTypeString ();
     return this_type.name();
 endfunction: getTypeString
+
+function real JSONValue::getNumber ();
+    if (this_type != JSON_NUMBER) begin
+        `JSON_ERROR($sformatf("Try to get number from JSON node with type: %s!!",
+            this_type.name()
+        ))
+    end
+    return this_number;
+endfunction: JSONValue::getNumber
+
+function string JSONValue::getString ();
+    if (this_type != JSON_STRING) begin
+        `JSON_ERROR($sformatf("Try to get string from JSON node with type: %s!!",
+            this_type.name()
+        ))
+    end
+    return this_string;
+endfunction: JSONValue::getString
 
 function JSONStatus JSONValue::loadFromFile (
     string json_file

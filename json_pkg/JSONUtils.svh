@@ -49,7 +49,7 @@ endfunction: popChar
 function string JSONContext::getSubString (
     int idx_st, int idx_end
 );
-    return this.json_txt.substr(current_idx+idx_st, current_idx+idx_end);
+    return this.json_txt.substr(idx_st, idx_end);
 endfunction: JSONContext::getSubString
 
 function void JSONContext::skipWhiteSpace ();
