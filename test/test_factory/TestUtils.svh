@@ -30,7 +30,21 @@ end while(0);
 
 `define EXPECT_EQ_INT(expect, actual) `EXPECT_EQ_BASE((expect)==(actual), expect, actual, "%d")
 `define EXPECT_EQ_DOUBLE(expect, actual) `EXPECT_EQ_BASE((expect)==(actual), expect, actual, "%.17g")
-`define EXPECT_EQ_STRING(expect, actual) `EXPECT_EQ_BASE((expect)==(actual), expect, actual, "%s")
+
+function bit strEqu (
+    string lhs, rhs
+);
+    if (lhs.len() != rhs.len()) begin
+        return 0;
+    end
+    foreach(lhs[i]) begin
+        if (lhs[i] != rhs[i]) begin
+            return 0;
+        end
+    end
+    return 1;
+endfunction: strEqu
+`define EXPECT_EQ_STRING(expect, actual) `EXPECT_EQ_BASE((strEqu(expect, actual)), expect, actual, "%s")
 
 `define EXPECT_NEQ_BASE(equality, expect, actual, format) \
 do begin \

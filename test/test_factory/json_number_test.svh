@@ -23,8 +23,7 @@ class json_number_test extends TestPrototype;
     endfunction: testNumber
 
     task test ();
-        JSONValue jv;
-        $display("Start JSON literal test..");
+        $display("Start JSON number test..");
         testNumber(0.0, "0");
         testNumber(0.0, "-0");
         testNumber(0.0, "-0.0");
