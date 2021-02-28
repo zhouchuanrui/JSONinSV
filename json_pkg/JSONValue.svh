@@ -162,7 +162,10 @@ function JSONStatus JSONValue::parseNumber (
     end
     if (jc.peekChar() == ".") begin
         jc.incIndex();
-        if (!`_isDigit(jc.popChar())) begin
+        //if (!`_isDigit(jc.popChar())) begin 
+        // fix: this would call popChar() twice in macro expansion
+        //
+        if (!`_isDigit(jc.peekChar())) begin
             return PARSE_INVALID_VALUE;
         end
         while (`_isDigit(jc.peekChar())) begin
