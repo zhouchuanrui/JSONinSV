@@ -57,6 +57,10 @@ class JSONValue;
 
     extern function real getNumber ();
     extern function string getString ();
+    extern function int getArraySize ();
+    extern function JSONValue getArrayElement (int idx);
+    extern function int getObjectSize ();
+    extern function JSONValue getObjectMember (string key);
 
     // parser APIs
     extern function JSONStatus loads(string json_txt);
@@ -117,6 +121,7 @@ function JSONStatus JSONValue::parseTrue (JSONContext jc);
         end
     end
     this.setTrue();
+    return PARSE_OK;
 endfunction: JSONValue::parseTrue
 
 function JSONStatus JSONValue::parseFalse (JSONContext jc);
@@ -126,6 +131,7 @@ function JSONStatus JSONValue::parseFalse (JSONContext jc);
         end
     end
     this.setFalse();
+    return PARSE_OK;
 endfunction: JSONValue::parseFalse
 
 function JSONStatus JSONValue::parseNull (JSONContext jc);
@@ -135,6 +141,7 @@ function JSONStatus JSONValue::parseNull (JSONContext jc);
         end
     end
     this.setNull();
+    return PARSE_OK;
 endfunction: JSONValue::parseNull
 
 function JSONStatus JSONValue::parseNumber (
@@ -269,6 +276,7 @@ function JSONStatus JSONValue::parseArray (
         if (ret != PARSE_OK) begin
             break;
         end
+        this.addValueToArray(val);
         jc.skipWhiteSpace();
         if (jc.peekChar() == ",") begin
             jc.incIndex();
@@ -407,6 +415,44 @@ function string JSONValue::getString ();
     end
     return this_string;
 endfunction: JSONValue::getString
+
+function int JSONValue::getArraySize ();
+    if (this_type != JSON_ARRAY) begin
+        `JSON_ERROR($sformatf("Try to get array size from JSON node with type: %s!!",
+            this_type.name()
+        ))
+    end
+    return this_array.size();
+endfunction: JSONValue::getArraySize
+
+function JSONValue JSONValue::getArrayElement (
+    int idx
+);
+    if (this_type != JSON_ARRAY) begin
+        `JSON_ERROR($sformatf("Try to get array value from JSON node with type: %s!!",
+            this_type.name()
+        ))
+    end
+    if (idx >= this_array.size()) begin
+        `JSON_ERROR("Index out of array size!!")
+    end
+    return this_array[idx];
+endfunction: JSONValue::getArrayElement
+
+function int JSONValue::getObjectSize ();
+    if (this_type != JSON_OBJECT) begin
+        `JSON_ERROR($sformatf("Try to get object size from JSON node with type: %s!!",
+            this_type.name()
+        ))
+    end
+    return this_object.size();
+endfunction: JSONValue::getObjectSize
+
+function JSONValue JSONValue::getObjectMember (
+    string key
+);
+    
+endfunction: JSONValue::getObjectMember
 
 function JSONStatus JSONValue::loadFromFile (
     string json_file
