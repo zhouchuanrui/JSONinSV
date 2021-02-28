@@ -211,7 +211,7 @@ function JSONStatus JSONValue::parseStringLiteral (
         this_char = jc.popChar();
         case(this_char)
             "\"": begin
-                str = {>>{str_q}};
+                str = string'({>>{str_q}});
                 return PARSE_OK;
             end
             "\\": begin // back-slash parse
@@ -300,6 +300,7 @@ function JSONStatus JSONValue::parseObject (
     JSONStatus ret;
     this.setObject();
 
+    jc.incIndex();
     jc.skipWhiteSpace();
     if (jc.peekChar() == "}") begin
         jc.incIndex();
@@ -319,6 +320,7 @@ function JSONStatus JSONValue::parseObject (
             ret = PARSE_MISS_COLON;
             break;
         end
+        jc.incIndex();
         jc.skipWhiteSpace();
         val = new(this_depth+1);
         ret = val.parseValue(jc);
@@ -375,6 +377,7 @@ function void JSONValue::addMemberToObject (
     string key, JSONValue val
 );
     if (this_object.exists(key)) begin
+        string this_key;
         `JSON_WARN($sformatf("Member with key: %s exists in this object. Parser would override it!!", key))
     end
     this_object[key] = val;
@@ -451,7 +454,23 @@ endfunction: JSONValue::getObjectSize
 function JSONValue JSONValue::getObjectMember (
     string key
 );
-    
+    if (this_type != JSON_OBJECT) begin
+        `JSON_ERROR($sformatf("Try to get object member from JSON node with type: %s!!",
+            this_type.name()
+        ))
+    end
+    if (!this_object.exists(key)) begin
+        `JSON_ERROR($sformatf("Non-exist key: %s in object", key))
+        if (this_object.first(key)) begin
+            do begin
+                $display("this_object[\"%s\"] with type: %s", key, this_object[key].getTypeString());
+            end while(this_object.next(key));
+        end
+        foreach(this_object[i]) begin
+            $display("this_object[\"%s\"] with type: %s", i, this_object[i].getTypeString());
+        end
+    end
+    return this_object[key];
 endfunction: JSONValue::getObjectMember
 
 function JSONStatus JSONValue::loadFromFile (

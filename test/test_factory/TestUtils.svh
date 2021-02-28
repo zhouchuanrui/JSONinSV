@@ -24,11 +24,11 @@ do begin \
         TestStat::pass_cnt++; \
     end else begin \
         TestStat::fail_cnt++; \
-        $display($sformatf("[ASSERT_FAIL] expect: %s actual %s", format, format), expect, actual); \
+        $display($sformatf("[ASSERT_FAIL] expect: %s actual: %s", format, format), expect, actual); \
     end \
 end while(0);
 
-`define EXPECT_EQ_INT(expect, actual) `EXPECT_EQ_BASE((expect)==(actual), expect, actual, "%d")
+`define EXPECT_EQ_INT(expect, actual) `EXPECT_EQ_BASE((expect)==(actual), expect, actual, "%0d")
 `define EXPECT_EQ_DOUBLE(expect, actual) `EXPECT_EQ_BASE((expect)==(actual), expect, actual, "%.17g")
 
 function bit strEqu (
