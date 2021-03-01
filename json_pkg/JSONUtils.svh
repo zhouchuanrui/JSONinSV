@@ -28,29 +28,29 @@ class JSONContext;
     extern function void skipWhiteSpace();
     extern function bit isEnd();
 
-endclass: JSONContext
+endclass
 
 function int JSONContext::getIndex ();
     return current_idx;
-endfunction: JSONContext::getIndex
+endfunction
 
 function void JSONContext::incIndex ();
     current_idx++;
-endfunction: JSONContext::incIndex
+endfunction
 
 function byte JSONContext::peekChar ();
     return this.json_txt[this.current_idx];
-endfunction: JSONContext::peekChar
+endfunction
 
 function byte JSONContext::popChar ();
     return this.json_txt[this.current_idx++];
-endfunction: popChar
+endfunction
 
 function string JSONContext::getSubString (
     int idx_st, int idx_end
 );
     return this.json_txt.substr(idx_st, idx_end);
-endfunction: JSONContext::getSubString
+endfunction
 
 function void JSONContext::skipWhiteSpace ();
     while( this.json_txt[this.current_idx] inside {
@@ -61,9 +61,9 @@ function void JSONContext::skipWhiteSpace ();
     }) begin
         this.current_idx++;
     end
-endfunction: skipWhiteSpace
+endfunction
 
 function bit JSONContext::isEnd ();
     return this.current_idx >= this.json_txt.len();
-endfunction: JSONContext::isEnd
+endfunction
 

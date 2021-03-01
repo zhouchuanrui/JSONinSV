@@ -5,7 +5,10 @@
 //Created:  2021/1/26 7:36:07
 //Description: JSON value
 //Revisions: 
-//2021/1/26 7:36:46: created
+//2021/1/26 7:36:46: 
+//  created
+//2021/3/1 23:27:36: 
+//  fix M-tool issue by doing strsub in addMemberToObject
 //
 
 typedef class JSONContext;
@@ -79,9 +82,9 @@ class JSONValue;
     extern function JSONStatus parseNull(JSONContext jc);
     extern function JSONStatus parseTrue(JSONContext jc);
     extern function JSONStatus parseFalse(JSONContext jc);
-    extern function JSONStatus parseStringLiteral(JSONContext jc, ref string str);
+    extern function JSONStatus parseStringLiteral(JSONContext jc, output string str);
 
-endclass: JSONValue
+endclass
 
 function JSONStatus JSONValue::loads (string json_txt);
     JSONStatus ret;
@@ -112,7 +115,7 @@ function JSONStatus JSONValue::parseValue (JSONContext jc);
         "{": return parseObject(jc);
         default: return parseNumber(jc);
     endcase
-endfunction: JSONValue::parseValue
+endfunction
 
 function JSONStatus JSONValue::parseTrue (JSONContext jc);
     for (int i=0; i < true_literal.len(); i++) begin
@@ -122,7 +125,7 @@ function JSONStatus JSONValue::parseTrue (JSONContext jc);
     end
     this.setTrue();
     return PARSE_OK;
-endfunction: JSONValue::parseTrue
+endfunction
 
 function JSONStatus JSONValue::parseFalse (JSONContext jc);
     for (int i=0; i < false_literal.len(); i++) begin
@@ -132,7 +135,7 @@ function JSONStatus JSONValue::parseFalse (JSONContext jc);
     end
     this.setFalse();
     return PARSE_OK;
-endfunction: JSONValue::parseFalse
+endfunction
 
 function JSONStatus JSONValue::parseNull (JSONContext jc);
     for (int i=0; i < null_literal.len(); i++) begin
@@ -142,7 +145,7 @@ function JSONStatus JSONValue::parseNull (JSONContext jc);
     end
     this.setNull();
     return PARSE_OK;
-endfunction: JSONValue::parseNull
+endfunction
 
 function JSONStatus JSONValue::parseNumber (
     JSONContext jc
@@ -195,14 +198,18 @@ function JSONStatus JSONValue::parseNumber (
         end
     end
     idx_end = jc.getIndex();
-    this.setNumber(jc.getSubString(idx_st, idx_end-1).atoreal());
+    begin
+        string real_str;
+        real_str = jc.getSubString(idx_st, idx_end-1);
+        this.setNumber(real_str.atoreal());
+    end
     return PARSE_OK;
     `undef _isDigit
-endfunction: JSONValue::parseNumber
+endfunction
 
 function JSONStatus JSONValue::parseStringLiteral (
     JSONContext jc,
-    ref string str
+    output string str
 );
     byte str_q[$];
     byte this_char;
@@ -211,7 +218,9 @@ function JSONStatus JSONValue::parseStringLiteral (
         this_char = jc.popChar();
         case(this_char)
             "\"": begin
-                str = string'({>>{str_q}});
+                //str_q.push_back(0);
+                //void'(str_q.pop_back());
+                str = {>>{str_q}};
                 return PARSE_OK;
             end
             "\\": begin // back-slash parse
@@ -244,7 +253,7 @@ function JSONStatus JSONValue::parseStringLiteral (
             end
         endcase
     end
-endfunction: JSONValue::parseStringLiteral
+endfunction
 
 function JSONStatus JSONValue::parseString (
     JSONContext jc
@@ -256,7 +265,7 @@ function JSONStatus JSONValue::parseString (
         setString(str);
     end
     return ret;
-endfunction: JSONValue::parseString
+endfunction
 
 function JSONStatus JSONValue::parseArray (
     JSONContext jc
@@ -290,7 +299,7 @@ function JSONStatus JSONValue::parseArray (
         end
     end
     return ret;
-endfunction: JSONValue::parseArray
+endfunction
 
 function JSONStatus JSONValue::parseObject (
     JSONContext jc
@@ -341,57 +350,60 @@ function JSONStatus JSONValue::parseObject (
         end
     end
     return ret;
-endfunction: JSONValue::parseObject
+endfunction
 
 function void JSONValue::setNull ();
     this_type = JSON_NULL;
-endfunction: JSONValue::setNull
+endfunction
 
 function void JSONValue::setTrue ();
     this_type = JSON_TRUE;
-endfunction: JSONValue::setTrue
+endfunction
 
 function void JSONValue::setFalse ();
     this_type = JSON_FALSE;
-endfunction: JSONValue::setFalse
+endfunction
 
 function void JSONValue::setNumber (
     real number
 );
     this_type = JSON_NUMBER;
     this_number = number;
-endfunction: JSONValue::setNumber
+endfunction
 
 function void JSONValue::setString (
     string str
 );
     this_type = JSON_STRING;
     this_string = str;
-endfunction: JSONValue::setString
+endfunction
 
 function void JSONValue::setObject ();
     this_type = JSON_OBJECT;
-endfunction: setObject 
+endfunction
 
 function void JSONValue::addMemberToObject (
     string key, JSONValue val
 );
-    if (this_object.exists(key)) begin
-        string this_key;
-        `JSON_WARN($sformatf("Member with key: %s exists in this object. Parser would override it!!", key))
+    string _str;
+    // M-tool need to do substr
+    _str = key.substr(0, key.len()-1);
+
+    if (this_object.exists(_str)) begin
+        `JSON_WARN($sformatf("Member with key: %s exists in this object. Parser would override it!!", _str))
     end
-    this_object[key] = val;
-endfunction: JSONValue::addMemberToObject
+    this_object[_str] = val;
+endfunction
 
 function void JSONValue::setArray ();
     this_type = JSON_ARRAY;
-endfunction: JSONValue::setArray
+endfunction
 
 function void JSONValue::addValueToArray (
     JSONValue val
 );
     this_array.push_back(val);
-endfunction: JSONValue::addValueToArray
+endfunction
 
 function JSONValue::JSONType JSONValue::getType ();
     return this_type;
@@ -399,7 +411,7 @@ endfunction
 
 function string JSONValue::getTypeString ();
     return this_type.name();
-endfunction: getTypeString
+endfunction
 
 function real JSONValue::getNumber ();
     if (this_type != JSON_NUMBER) begin
@@ -408,7 +420,7 @@ function real JSONValue::getNumber ();
         ))
     end
     return this_number;
-endfunction: JSONValue::getNumber
+endfunction
 
 function string JSONValue::getString ();
     if (this_type != JSON_STRING) begin
@@ -417,7 +429,7 @@ function string JSONValue::getString ();
         ))
     end
     return this_string;
-endfunction: JSONValue::getString
+endfunction
 
 function int JSONValue::getArraySize ();
     if (this_type != JSON_ARRAY) begin
@@ -426,7 +438,7 @@ function int JSONValue::getArraySize ();
         ))
     end
     return this_array.size();
-endfunction: JSONValue::getArraySize
+endfunction
 
 function JSONValue JSONValue::getArrayElement (
     int idx
@@ -440,7 +452,7 @@ function JSONValue JSONValue::getArrayElement (
         `JSON_ERROR("Index out of array size!!")
     end
     return this_array[idx];
-endfunction: JSONValue::getArrayElement
+endfunction
 
 function int JSONValue::getObjectSize ();
     if (this_type != JSON_OBJECT) begin
@@ -449,7 +461,7 @@ function int JSONValue::getObjectSize ();
         ))
     end
     return this_object.size();
-endfunction: JSONValue::getObjectSize
+endfunction
 
 function JSONValue JSONValue::getObjectMember (
     string key
@@ -466,28 +478,25 @@ function JSONValue JSONValue::getObjectMember (
                 $display("this_object[\"%s\"] with type: %s", key, this_object[key].getTypeString());
             end while(this_object.next(key));
         end
-        foreach(this_object[i]) begin
-            $display("this_object[\"%s\"] with type: %s", i, this_object[i].getTypeString());
-        end
     end
     return this_object[key];
-endfunction: JSONValue::getObjectMember
+endfunction
 
 function JSONStatus JSONValue::loadFromFile (
     string json_file
 );
     return PARSE_OK;
-endfunction: loadFromFile
+endfunction
 
 function JSONStatus JSONValue::dumps (
     ref string json_txt
 );
     return PARSE_OK;
-endfunction: dumps
+endfunction
 
 function JSONStatus JSONValue::dumpToFile (
     string json_file
 );
     return PARSE_OK;
-endfunction: JSONValue::dumpToFile
+endfunction
 

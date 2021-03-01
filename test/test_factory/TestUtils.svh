@@ -24,7 +24,8 @@ do begin \
         TestStat::pass_cnt++; \
     end else begin \
         TestStat::fail_cnt++; \
-        $display($sformatf("[ASSERT_FAIL] expect: %s actual: %s", format, format), expect, actual); \
+        $write("<%s:%0d>", `__FILE__, `__LINE__); \
+        $display($sformatf("[ASSERT_FAIL] exp: %s act: %s", format, format), expect, actual); \
     end \
 end while(0);
 
@@ -52,11 +53,12 @@ do begin \
         TestStat::pass_cnt++; \
     end else begin \
         TestStat::fail_cnt++; \
-        $display({"[ASSERT_FAIL]", "expect: ", format, " actual: ", format}, expect, actual); \
+        $write("<%s:%0d>", `__FILE__, `__LINE__); \
+        $display({"[ASSERT_FAIL]", "exp: ", format, " act: ", format}, expect, actual); \
     end \
 end while(0);
 
 `define EXPECT_NEQ_INT(expect, actual) `EXPECT_NEQ_BASE((expect)==(actual), expect, actual, "%d")
 `define EXPECT_NEQ_DOUBLE(expect, actual) `EXPECT_NEQ_BASE((expect)==(actual), expect, actual, "%.17g")
-`define EXPECT_NEQ_STRING(expect, actual) `EXPECT_NEQ_BASE((expect)==(actual), expect, actual, "%s")
+`define EXPECT_NEQ_STRING(expect, actual) `EXPECT_NEQ_BASE((strEqu(expect, actual)), expect, actual, "%s")
 
