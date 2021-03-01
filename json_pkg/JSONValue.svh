@@ -39,7 +39,7 @@ class JSONValue;
     protected real this_number;
     protected int this_depth; // depth of this value node, starts from 0
 
-    function new(depth = 0);
+    function new(int depth = 0);
         this_type = JSON_NULL;
         this_depth = depth;
     endfunction
