@@ -320,7 +320,9 @@ function JSONStatus JSONValue::parseObject (
             ret = PARSE_MISS_KEY;
             break;
         end
+        val = new(this_depth+1);
         ret = parseStringLiteral(jc, this_key);
+        this.addMemberToObject(this_key, val);
         if (ret != PARSE_OK) begin
             break;
         end
@@ -331,12 +333,10 @@ function JSONStatus JSONValue::parseObject (
         end
         jc.incIndex();
         jc.skipWhiteSpace();
-        val = new(this_depth+1);
         ret = val.parseValue(jc);
         if (ret != PARSE_OK) begin
             break;
         end
-        this.addMemberToObject(this_key, val);
         jc.skipWhiteSpace();
         if (jc.peekChar() == ",") begin
             jc.incIndex();
