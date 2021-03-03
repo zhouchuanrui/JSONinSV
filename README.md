@@ -1,4 +1,7 @@
 # JSONinSV
+
+![](https://img.shields.io/badge/license-MIT-green)
+
 JSON lib in Systemverilog
 
 ## 简介
