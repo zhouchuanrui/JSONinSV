@@ -57,5 +57,24 @@ JSONinSV实现的功能规格主要是三个部分:
 
 ## API说明
 
-## 使用示例
+### 枚举常数
+
+用户需要使用的枚举常数包括JSON类型枚举和返回值枚举.
+
+其中类型枚举用于指示JSON节点的类型, 其定义如下:
+
+枚举值 | 含义
+--|--
+JSON\_OBJECT | 对象
+JSON\_ARRAY  | 数组
+JSON\_STRING | 字符串
+JSON\_NUMBER | 数值
+JSON\_TRUE   | 真值
+JSON\_FALSE  | 伪值
+JSON\_NULL   | 空值
+
+
+
+
+## 使用说明
 
