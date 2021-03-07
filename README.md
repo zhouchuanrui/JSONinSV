@@ -4,6 +4,8 @@
 
 JSON lib in Systemverilog
 
+[TOC]
+
 ## 简介
 
 JSON是应用广泛的一种数据表示格式, 常用于进程间复杂数据的交互. 
