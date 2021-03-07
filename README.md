@@ -4,13 +4,24 @@
 
 JSON lib in Systemverilog
 
-[TOC]
+- [简介](#简介)
+- [Reference](#reference)
+- [规格介绍](#规格介绍)
+    - [性能考虑](#性能考虑)
+- [API说明](#api说明)
+    - [枚举常数](#枚举常数)
+    - [用户函数](#用户函数)
+- [使用介绍](#使用介绍) 
+    - [JSON库使用](#json库使用) 
+    - [测试用例运行](#测试用例运行) 
+    - [仿真器适配](#仿真器适配情况) 
+
 
 ## 简介
 
 JSON是应用广泛的一种数据表示格式, 常用于进程间复杂数据的交互. 
 
-2016年, 我在网络上发现了某大牛发布的JSON教程, 开始接触到JSON, 后面陆续开始基于JSON开发了一些小规模工具. 作为一名验证工程师, 将验证平台真正的加入到JSON生态中, 是很久远的一个想法了, 这便是JSONinSV这个项目的由来.
+多年以前我在网络上发现了某前辈发布的JSON教程, 开始接触到JSON, 后面陆续开始基于JSON开发了一些小规模工具. 作为一名验证工程师, 将验证平台真正的加入到JSON生态中, 是很久远的一个想法了, 这便是JSONinSV这个项目的由来.
 
 这个项目的目的是提供SystemVerilog实现的JSON解析库和生成库, 实现和外围组件的更有目的性的互动, 帮助使用者开发出更灵活更强大的验证应用.
 
@@ -75,8 +86,40 @@ JSON\_TRUE   | 真值
 JSON\_FALSE  | 伪值
 JSON\_NULL   | 空值
 
+返回值枚举定义如下:
 
+枚举值 | 含义
+--|--
+PARSE\_OK| 解析正确
+PARSE\_NO\_VALUE| JSON文本中没有值
+PARSE\_ROOT\_NOT\_SINGULAR| JSON文本中存在多个顶层
+PARSE\_INVALID\_VALUE| 错误的值节点, 包括空值, 伪值, 真值, 数值, 字符串中的文本错误
+PARSE\_MISS\_KEY| 对象中缺少Key字符串
+PARSE\_MISS\_COLON| 对象成员间缺少分号
+PARSE\_MISS\_COMMA\_OR\_CURLY\_BRACKET| 对象中缺少逗号或花括号
+PARSE\_MISS\_QUOTATION\_MARK| 缺少引号
+PARSE\_MISS\_COMMA\_OR\_SQUARE\_BRACKET| 数组中缺少逗号或方括号
 
+### 用户函数
+
+构造函数:
+
+原型定义 | 说明
+--|--
+`new(int depth = 0)` | 
 
 ## 使用说明
+
+### JSON库使用
+
+### 测试用例运行
+
+### 仿真器适配情况
+
+JSONinSV在S/C/M三家的仿真器上都经过测试, 目前S/M的仿真器适配良好, 而C的仿真器存在如下问题:
+
+1. 不支持指数形式的浮点数字符串文本转换;
+2. 不支持浮点数字符串格式化;
+
+其中[1]会影响JSONinSV的使用, [2]会影响定义的number测试结果(指数形式转换测试). 由于目前未计划实现字符串文本转浮点数(当前版本使用SystemVerilog中`string`的内置`atoreal`方法实现), 需要在C仿真器中使用JSONinSV的用户需要注意避免使用指数形式的浮点表示.
 
