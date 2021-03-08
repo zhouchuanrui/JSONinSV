@@ -10,6 +10,10 @@
 //2021/3/1 23:27:36: 
 //  fix M-tool issue by doing strsub in addMemberToObject
 //
+//2021/3/9 0:01:08: 
+//  update loadFromFile; TODO:
+//  testdir dealing
+//
 
 typedef class JSONContext;
 
@@ -485,7 +489,19 @@ endfunction
 function JSONStatus JSONValue::loadFromFile (
     string json_file
 );
-    return PARSE_OK;
+    JSONStatus ret;
+    string json_txt = "", this_line = "";
+    int j_fd;
+    j_fd = $fopen(json_file, "r");
+    if (j_fd == 0) begin
+        return FILE_OPEN_ERROR;
+    end
+    while($feof(j_fd) == 0) begin
+        void'($fgets(this_line, j_fd));
+        json_txt = {json_txt, this_line};
+    end
+    ret = this.loads(json_txt);
+    return ret;
 endfunction
 
 function JSONStatus JSONValue::dumps (

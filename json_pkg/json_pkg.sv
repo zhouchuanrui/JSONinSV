@@ -22,6 +22,7 @@ package json_pkg;
         PARSE_MISS_QUOTATION_MARK,
         PARSE_MISS_COMMA_OR_SQUARE_BRACKET,
         PARSE_NO_VALUE,
+        FILE_OPEN_ERROR,
         RSV
     } JSONStatus;
 
