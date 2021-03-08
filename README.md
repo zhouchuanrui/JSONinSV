@@ -101,6 +101,7 @@ PARSE\_MISS\_COLON| 对象成员间缺少分号
 PARSE\_MISS\_COMMA\_OR\_CURLY\_BRACKET| 对象中缺少逗号或花括号
 PARSE\_MISS\_QUOTATION\_MARK| 缺少引号
 PARSE\_MISS\_COMMA\_OR\_SQUARE\_BRACKET| 数组中缺少逗号或方括号
+FILE\_OPEN\_ERROR| 文件打开失败
 
 ### 用户函数
 
@@ -207,9 +208,18 @@ Tests available:
    json_number_test
    json_object_test
    json_string_test
+   json_file_test
 ```
 
 其中`json_literal_test`包括`null`, `false`和`true`的解析测试.
+
+在运行`json_file_test`时, 默认使用`..`从仿真目录指向`test`目录, 在仿真目录层级有差异时使用:
+
+```
+$(EDA_SIM_CMD) +TEST=json_file_test +DIR=[rel_path]
+```
+
+`+DIR=`参数进行运行时调整.
 
 ### 仿真器适配情况
 

@@ -18,6 +18,7 @@ package test_pkg;
     `include "json_number_test.svh"
     `include "json_array_test.svh"
     `include "json_object_test.svh"
+    `include "json_file_test.svh"
 
     //`include "demo_test.svh"
 

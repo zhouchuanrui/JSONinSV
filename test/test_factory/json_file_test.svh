@@ -1,39 +1,32 @@
 //
-//File: json_object_test.svh
+//File: json_file_test.svh
 //Device: 
 //Author: zhouchuanrui@foxmail.com
-//Created:  2021/2/28 22:12:14
-//Description: object test for json
+//Created:  2021/3/9 7:33:01
+//Description: file test
 //Revisions: 
-//2021/2/28 22:12:24: created
+//2021/3/9 7:33:13: created
 //
 
-class json_object_test extends TestPrototype;
-    `__register(json_object_test)
+class json_file_test extends TestPrototype;
+    `__register(json_file_test)
 
     task test ();
         JSONValue jv;
-        $display("Start object test..");
+        string base_dir;
+        jv = new();
 
-        jv = new();
-        `EXPECT_EQ_INT(json_pkg::PARSE_OK, jv.loads(" {   } "))
-        `EXPECT_EQ_INT(JSONValue::JSON_OBJECT, jv.getType())
-        `EXPECT_EQ_STRING("JSON_OBJECT", jv.getTypeString())
-        `EXPECT_EQ_INT(0, jv.getObjectSize())
-        jv = new();
-        `EXPECT_EQ_INT(json_pkg::PARSE_OK, jv.loads(
-            {
-            " { ",
-            "\"n\" : null , ",
-            "\"f\" : false , ",
-            "\"t\" : true , ", 
-            "\"i\" : 123 , ",
-            "\"s\" : \"abc\", ",
-            "\"a\" : [ 1, 2, 3 ],",
-            "\"o\" : { \"1\" : 1, \"2\" : 2, \"3\" : 3 }",
-            " } "
-        }
-        ))
+        $display("Start file test..");
+
+        if ($value$plusargs("DIR=%s", base_dir)) begin
+            $display("Set test directory to %s", base_dir);
+        end else begin
+            base_dir = "../";
+            $display("Use %s as test directory..", base_dir);
+        end
+
+        //`EXPECT_EQ_INT(json_pkg::PARSE_OK, jv.loadFromFile("../test/json_files/object.json"))
+        `EXPECT_EQ_INT(json_pkg::PARSE_OK, jv.loadFromFile({base_dir, "/test/json_files/object.json"}))
         `EXPECT_EQ_INT(7, jv.getObjectSize())
         `EXPECT_EQ_INT(JSONValue::JSON_NULL, jv.getObjectMember("n").getType())
         `EXPECT_EQ_INT(JSONValue::JSON_FALSE, jv.getObjectMember("f").getType())
@@ -58,9 +51,8 @@ class json_object_test extends TestPrototype;
             `EXPECT_EQ_INT(JSONValue::JSON_NUMBER, this_val.getType())
             `EXPECT_EQ_DOUBLE(i+1.0, this_val.getNumber())
         end
-
         `REPORT_TEST()
-    endtask: test
-endclass: json_object_test 
+    endtask
 
+endclass
 
