@@ -78,6 +78,7 @@ class JSONValue;
     extern function JSONStatus dumpToFile(string json_file);
 
     // internal methods
+    // parse 
     extern function JSONStatus parseValue(JSONContext jc);
     extern function JSONStatus parseObject(JSONContext jc);
     extern function JSONStatus parseArray(JSONContext jc);
@@ -87,6 +88,11 @@ class JSONValue;
     extern function JSONStatus parseTrue(JSONContext jc);
     extern function JSONStatus parseFalse(JSONContext jc);
     extern function JSONStatus parseStringLiteral(JSONContext jc, output string str);
+    extern function JSONStatus parseStringLiteral(JSONContext jc, output string str);
+    // check
+    extern function JSONStatus checkLoop(JSONChecker jc, int valid_depth);
+    // stringify 
+    extern function JSONStatus toString(JSONStringBuffer jsb);
 
 endclass
 
@@ -501,18 +507,106 @@ function JSONStatus JSONValue::loadFromFile (
         json_txt = {json_txt, this_line};
     end
     ret = this.loads(json_txt);
+    $fclose(j_fd);
     return ret;
 endfunction
 
 function JSONStatus JSONValue::dumps (
-    ref string json_txt
+    output string json_txt,
+    input int indent = 0
 );
-    return PARSE_OK;
+    JSONStringBuffer jsb = new();
+    JSONChecker jc = new();
+    json_txt = "";
+    this.checkLoop(jc, this_depth);
+    this.toString(jsb);
+    json_txt = jsb.getString();
+    return DUMP_OK;
 endfunction
 
+function JSONStatus JSONValue::toString (JSONStringBuffer jsb);
+    case(this_type) 
+        JSON_NULL: begin
+            jsb.pushString("null");
+        end
+        JSON_FALSE: begin
+            jsb.pushString("false");
+        end
+        JSON_TRUE: begin
+            jsb.pushString("true");
+        end
+        JSON_NUMBER: begin
+            string str;
+            str.realtoa(this_number);
+            jsb.pushString(str);
+        end
+        JSON_STRING: begin
+            jsb.pushString(this_string);
+        end
+        JSON_ARRAY: begin
+            jsb.pushString("[");
+            foreach(this_array[i]) begin
+                this_array[i].toString();
+                if (i != this_array.size() -1) begin
+                    jsb.pushString(", ");
+                end
+            end
+            jsb.pushString("]");
+        end
+        JSON_OBJECT: begin
+            string str;
+            string key;
+            jsb.pushString("{");
+            if (this_object.first(key)) begin
+                do begin
+                    jsb.pushString(key);
+                    jsb.pushString(": ");
+                    this_object[key].toString();
+                    if (!this_object.last(key)) begin
+                        jsb.pushString(", ");
+                    end
+                end while (this_object.next(key));
+            end
+            /*
+            *
+            foreach(this_object[k]) begin
+                jsb.pushString(k);
+                jsb.pushString(": ");
+                this_object[k].toString();
+                if (!this_object.last(k)) begin
+                    jsb.pushString(", ");
+                end
+            end
+            * */
+            jsb.pushString("}");
+        end
+        default: begin
+            return VALUE_TYPE_ERROR;
+        end
+    endcase
+endfunction
+/*
+*string s;
+if ( map.last( s ) )
+do
+    $display( "%s : %d\n", s, map[ s ] );
+while ( map.prev( s ) );
+* */
+
 function JSONStatus JSONValue::dumpToFile (
-    string json_file
+    string json_file,
+    int indent = 0;
 );
-    return PARSE_OK;
+    string json_txt;
+    JSONStatus ret;
+    int jfd;
+    jfd = $fopen(json_file, "w");
+    if (jfd == 0) begin
+        return FILE_OPEN_ERROR;
+    end
+    ret = dumps(json_txt, indent);
+    $fdisplay(jfd, "%", json_txt);
+    $fclose(jfd);
+    return DUMP_OK;
 endfunction
 

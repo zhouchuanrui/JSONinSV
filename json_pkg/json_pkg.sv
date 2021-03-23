@@ -23,6 +23,10 @@ package json_pkg;
         PARSE_MISS_COMMA_OR_SQUARE_BRACKET,
         PARSE_NO_VALUE,
         FILE_OPEN_ERROR,
+        VALUE_TYPE_ERROR,
+        DUMP_OK,
+        CHECK_OK,
+        STRINGIFY_OK,
         RSV
     } JSONStatus;
 

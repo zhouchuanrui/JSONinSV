@@ -30,6 +30,37 @@ class JSONContext;
 
 endclass
 
+typedef class JSONValue;
+
+class JSONChecker;
+
+    function new(int depth=0);
+    endfunction
+
+    // internal properties
+    protected JSONValue jv_oa_q[$]; // store handles of objects, arrays
+    protected int current_depth;
+
+    // APIs
+endclass
+
+class JSONStringBuffer;
+
+    function new(int indent = 0);
+        this.indent = indent;
+    endfunction
+
+    // internal properties
+    protected int indent;
+    //protected byte str_q[$];
+    protected string str_q;
+
+    // APIs
+    extern function string getString();
+    extern function void pushString(string str);
+endclass
+
+
 function int JSONContext::getIndex ();
     return current_idx;
 endfunction
@@ -65,5 +96,27 @@ endfunction
 
 function bit JSONContext::isEnd ();
     return this.current_idx >= this.json_txt.len();
+endfunction
+
+function string JSONStringBuffer::getString ();
+    /*
+    *
+    string str;
+    str = {>>{str_q}};
+    return str;
+    * */
+    return str_q;
+endfunction
+
+function void JSONStringBuffer::pushString (
+    string str
+);
+    /*
+    *
+    for (int i=0; i<str.len(); i++) begin
+        str_q.push_back(str.getc[i]);
+    end
+    * */
+    str_q = {str_q, str};
 endfunction
 
