@@ -74,8 +74,8 @@ class JSONValue;
     extern function JSONStatus loadFromFile(string json_file);
 
     // dumper APIs
-    extern function JSONStatus dumps(ref string json_txt);
-    extern function JSONStatus dumpToFile(string json_file);
+    extern function JSONStatus dumps(output string json_txt, input int indent = 0);
+    extern function JSONStatus dumpToFile(string json_file, int indent=0);
 
     // internal methods
     // parse 
@@ -88,9 +88,8 @@ class JSONValue;
     extern function JSONStatus parseTrue(JSONContext jc);
     extern function JSONStatus parseFalse(JSONContext jc);
     extern function JSONStatus parseStringLiteral(JSONContext jc, output string str);
-    extern function JSONStatus parseStringLiteral(JSONContext jc, output string str);
     // check
-    extern function JSONStatus checkLoop(JSONChecker jc, int valid_depth);
+    extern function JSONStatus checkLoop(JSONChecker jc, int valid_depth=0);
     // stringify 
     extern function JSONStatus toString(JSONStringBuffer jsb);
 
@@ -515,16 +514,31 @@ function JSONStatus JSONValue::dumps (
     output string json_txt,
     input int indent = 0
 );
+    JSONStatus ret;
     JSONStringBuffer jsb = new();
     JSONChecker jc = new();
     json_txt = "";
-    this.checkLoop(jc, this_depth);
-    this.toString(jsb);
+    ret = this.checkLoop(jc, this_depth);
+    if (ret != CHECK_OK) begin
+        return ret;
+    end
+    ret = this.toString(jsb);
+    if (ret != STRINGIFY_OK) begin
+        return ret;
+    end
     json_txt = jsb.getString();
     return DUMP_OK;
 endfunction
 
+function JSONStatus JSONValue::checkLoop (
+    JSONChecker jc,
+    int valid_depth = 0
+);
+    return CHECK_OK;
+endfunction
+
 function JSONStatus JSONValue::toString (JSONStringBuffer jsb);
+    JSONStatus ret;
     case(this_type) 
         JSON_NULL: begin
             jsb.pushString("null");
@@ -546,7 +560,10 @@ function JSONStatus JSONValue::toString (JSONStringBuffer jsb);
         JSON_ARRAY: begin
             jsb.pushString("[");
             foreach(this_array[i]) begin
-                this_array[i].toString();
+                ret = this_array[i].toString(jsb);
+                if (ret == STRINGIFY_OK) begin
+                    return ret;
+                end
                 if (i != this_array.size() -1) begin
                     jsb.pushString(", ");
                 end
@@ -561,7 +578,10 @@ function JSONStatus JSONValue::toString (JSONStringBuffer jsb);
                 do begin
                     jsb.pushString(key);
                     jsb.pushString(": ");
-                    this_object[key].toString();
+                    ret = this_object[key].toString(jsb);
+                    if (ret == STRINGIFY_OK) begin
+                        return ret;
+                    end
                     if (!this_object.last(key)) begin
                         jsb.pushString(", ");
                     end
@@ -584,6 +604,7 @@ function JSONStatus JSONValue::toString (JSONStringBuffer jsb);
             return VALUE_TYPE_ERROR;
         end
     endcase
+    return ret;
 endfunction
 /*
 *string s;
@@ -595,7 +616,7 @@ while ( map.prev( s ) );
 
 function JSONStatus JSONValue::dumpToFile (
     string json_file,
-    int indent = 0;
+    int indent = 0
 );
     string json_txt;
     JSONStatus ret;
@@ -607,6 +628,6 @@ function JSONStatus JSONValue::dumpToFile (
     ret = dumps(json_txt, indent);
     $fdisplay(jfd, "%", json_txt);
     $fclose(jfd);
-    return DUMP_OK;
+    return ret;
 endfunction
 
