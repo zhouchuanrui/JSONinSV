@@ -538,7 +538,7 @@ function JSONStatus JSONValue::checkLoop (
 endfunction
 
 function JSONStatus JSONValue::toString (JSONStringBuffer jsb);
-    JSONStatus ret;
+    JSONStatus ret = STRINGIFY_OK;
     case(this_type) 
         JSON_NULL: begin
             jsb.pushString("null");
@@ -555,13 +555,13 @@ function JSONStatus JSONValue::toString (JSONStringBuffer jsb);
             jsb.pushString(str);
         end
         JSON_STRING: begin
-            jsb.pushString(this_string);
+            jsb.pushRawString(this_string);
         end
         JSON_ARRAY: begin
             jsb.pushString("[");
             foreach(this_array[i]) begin
                 ret = this_array[i].toString(jsb);
-                if (ret == STRINGIFY_OK) begin
+                if (ret != STRINGIFY_OK) begin
                     return ret;
                 end
                 if (i != this_array.size() -1) begin
@@ -573,31 +573,41 @@ function JSONStatus JSONValue::toString (JSONStringBuffer jsb);
         JSON_OBJECT: begin
             string str;
             string key;
+            int idx = 0;
+            //string k;
             jsb.pushString("{");
+            /*
+            *
             if (this_object.first(key)) begin
                 do begin
-                    jsb.pushString(key);
+                    jsb.pushString("\"");
+                    jsb.pushRawString(key);
+                    jsb.pushString("\"");
                     jsb.pushString(": ");
                     ret = this_object[key].toString(jsb);
-                    if (ret == STRINGIFY_OK) begin
+                    if (ret != STRINGIFY_OK) begin
                         return ret;
                     end
                     if (!this_object.last(key)) begin
                         jsb.pushString(", ");
+                    end else begin
+                        `JSON_LOG($sformatf("Last key: %s", key))
                     end
                 end while (this_object.next(key));
             end
-            /*
-            *
-            foreach(this_object[k]) begin
-                jsb.pushString(k);
+            * */
+            foreach(this_object[key]) begin
+                idx++;
+                jsb.pushRawString(key);
                 jsb.pushString(": ");
-                this_object[k].toString();
-                if (!this_object.last(k)) begin
+                ret = this_object[key].toString(jsb);
+                if (ret != STRINGIFY_OK) begin
+                    return ret;
+                end
+                if (idx < this_object.size()) begin
                     jsb.pushString(", ");
                 end
             end
-            * */
             jsb.pushString("}");
         end
         default: begin
@@ -626,7 +636,7 @@ function JSONStatus JSONValue::dumpToFile (
         return FILE_OPEN_ERROR;
     end
     ret = dumps(json_txt, indent);
-    $fdisplay(jfd, "%", json_txt);
+    $fdisplay(jfd, "%s", json_txt);
     $fclose(jfd);
     return ret;
 endfunction

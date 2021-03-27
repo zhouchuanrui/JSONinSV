@@ -51,6 +51,8 @@ class json_file_test extends TestPrototype;
             `EXPECT_EQ_INT(JSONValue::JSON_NUMBER, this_val.getType())
             `EXPECT_EQ_DOUBLE(i+1.0, this_val.getNumber())
         end
+
+        `EXPECT_EQ_INT(json_pkg::DUMP_OK, jv.dumpToFile({base_dir, "/test/json_files/dumped_object.json"}))
         `REPORT_TEST()
     endtask
 

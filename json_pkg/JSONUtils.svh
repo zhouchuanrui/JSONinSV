@@ -58,6 +58,10 @@ class JSONStringBuffer;
     // APIs
     extern function string getString();
     extern function void pushString(string str);
+    // push interpreted string:
+    // " to /"
+    // / to //
+    extern function void pushRawString(string str); 
 endclass
 
 
@@ -118,5 +122,24 @@ function void JSONStringBuffer::pushString (
     end
     * */
     str_q = {str_q, str};
+endfunction
+
+function void JSONStringBuffer::pushRawString (
+    string str
+);
+    byte ch_q[$];
+    string tmp_str;
+    ch_q.push_back("\"");
+    // " to /"
+    // / to //
+    for(int i=0; i<str.len(); i++) begin
+        if (str[i] == 8'h22 || str[i] == 8'h2f) begin
+            ch_q.push_back(8'h2f); // push '/'
+        end
+        ch_q.push_back(str[i]);
+    end
+    ch_q.push_back("\"");
+    tmp_str = {>>{ch_q}};
+    str_q = {str_q, tmp_str};
 endfunction
 
