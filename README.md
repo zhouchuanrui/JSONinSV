@@ -21,7 +21,7 @@ JSON lib in Systemverilog
 
 JSON是应用广泛的一种数据表示格式, 常用于进程间复杂数据的交互. 
 
-多年以前我在网络上发现了某前辈发布的JSON教程, 开始接触到JSON, 后面陆续开始基于JSON开发了一些小规模工具. 作为一名验证工程师, 将验证平台真正的加入到JSON生态中, 是很久远的一个想法了, 这便是JSONinSV这个项目的由来.
+多年以前我在网络上发现了某前辈发布的JSON教程, 开始接触到JSON, 后面陆续开始基于JSON开发了一些小规模工具. 作为一名验证工程师, 将验证平台真正的加入到JSON生态中, 是很久远的一个想法了, 这是JSONinSV这个项目的由来.
 
 这个项目的目的是提供SystemVerilog实现的JSON解析库和生成库, 实现和外围组件的更有目的性的互动, 帮助使用者开发出更灵活更强大的验证应用.
 
@@ -209,6 +209,8 @@ Tests available:
    json_object_test
    json_string_test
    json_file_test
+   json_error_test
+   json_loop_test
 ```
 
 其中`json_literal_test`包括`null`, `false`和`true`的解析测试.
@@ -230,4 +232,5 @@ JSONinSV在S/C/M三家的仿真器上都经过测试, 目前S/M的仿真器适�
 
 其中[1]会影响JSONinSV的使用, [2]会影响定义的number测试结果(指数形式转换测试). 由于目前未计划实现字符串文本转浮点数(当前版本使用SystemVerilog中`string`的内置`atoreal`方法实现), 需要在C仿真器中使用JSONinSV的用户需要注意避免使用指数形式的浮点表示.
 
+在实现完JSONinSV的文本输出功能之后, 发现M的仿真器存在浮点数精度丢失的问题, 用户可使用`json_loop_test`测试用例进行确认.
 

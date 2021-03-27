@@ -18,7 +18,7 @@ class json_string_test extends TestPrototype;
         jv = new();
         `EXPECT_EQ_INT(json_pkg::PARSE_OK, jv.loads(json));
         `EXPECT_EQ_INT(JSONValue::JSON_STRING, jv.getType());
-        `EXPECT_EQ_INT("JSON_STRING", jv.getTypeString());
+        `EXPECT_EQ_STRING("JSON_STRING", jv.getTypeString());
         `EXPECT_EQ_STRING(exp, jv.getString());
         /*
         * exp != jv.getString()

@@ -104,7 +104,10 @@ function JSONStatus JSONValue::loads (string json_txt);
         ctx.skipWhiteSpace();
         if (ctx.isEnd() == 0) begin
             ret = PARSE_ROOT_NOT_SINGULAR;
-        end
+            this.setNull();
+        end 
+    end else begin
+        this.setNull();
     end
     return ret;
 endfunction

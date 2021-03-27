@@ -13,12 +13,15 @@ package test_pkg;
 
     `include "TestFactory.svh"
     `include "TestUtils.svh"
+
     `include "json_literal_test.svh"
     `include "json_string_test.svh"
     `include "json_number_test.svh"
     `include "json_array_test.svh"
     `include "json_object_test.svh"
     `include "json_file_test.svh"
+    `include "json_error_test.svh"
+    `include "json_loop_test.svh"
 
     //`include "demo_test.svh"
 
