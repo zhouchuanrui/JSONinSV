@@ -74,8 +74,8 @@ class JSONValue;
     extern function JSONStatus loadFromFile(string json_file);
 
     // dumper APIs
-    extern function JSONStatus dumps(output string json_txt, input int indent = 0);
-    extern function JSONStatus dumpToFile(string json_file, int indent=0);
+    extern function JSONStatus dumps(output string json_txt, input int unsigned indent = 0);
+    extern function JSONStatus dumpToFile(string json_file, int unsigned indent=0);
 
     // internal methods
     // parse 
@@ -512,10 +512,10 @@ endfunction
 
 function JSONStatus JSONValue::dumps (
     output string json_txt,
-    input int indent = 0
+    input int unsigned indent = 0
 );
     JSONStatus ret;
-    JSONStringBuffer jsb = new();
+    JSONStringBuffer jsb = new(indent);
     JSONChecker jc = new();
     json_txt = "";
     ret = this.checkLoop(jc, this_depth);
@@ -560,6 +560,7 @@ function JSONStatus JSONValue::toString (JSONStringBuffer jsb);
         JSON_ARRAY: begin
             jsb.pushString("[");
             foreach(this_array[i]) begin
+                jsb.addIndents(this_depth+1);
                 ret = this_array[i].toString(jsb);
                 if (ret != STRINGIFY_OK) begin
                     return ret;
@@ -568,6 +569,7 @@ function JSONStatus JSONValue::toString (JSONStringBuffer jsb);
                     jsb.pushString(", ");
                 end
             end
+            jsb.addIndents(this_depth);
             jsb.pushString("]");
         end
         JSON_OBJECT: begin
@@ -598,6 +600,7 @@ function JSONStatus JSONValue::toString (JSONStringBuffer jsb);
             * */
             foreach(this_object[key]) begin
                 idx++;
+                jsb.addIndents(this_depth+1);
                 jsb.pushRawString(key);
                 jsb.pushString(": ");
                 ret = this_object[key].toString(jsb);
@@ -608,6 +611,7 @@ function JSONStatus JSONValue::toString (JSONStringBuffer jsb);
                     jsb.pushString(", ");
                 end
             end
+            jsb.addIndents(this_depth);
             jsb.pushString("}");
         end
         default: begin
@@ -616,17 +620,10 @@ function JSONStatus JSONValue::toString (JSONStringBuffer jsb);
     endcase
     return ret;
 endfunction
-/*
-*string s;
-if ( map.last( s ) )
-do
-    $display( "%s : %d\n", s, map[ s ] );
-while ( map.prev( s ) );
-* */
 
 function JSONStatus JSONValue::dumpToFile (
     string json_file,
-    int indent = 0
+    int unsigned indent = 0
 );
     string json_txt;
     JSONStatus ret;

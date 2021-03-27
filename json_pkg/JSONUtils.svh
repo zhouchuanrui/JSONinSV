@@ -46,12 +46,12 @@ endclass
 
 class JSONStringBuffer;
 
-    function new(int indent = 0);
+    function new(int unsigned indent = 0);
         this.indent = indent;
     endfunction
 
     // internal properties
-    protected int indent;
+    protected int unsigned indent;
     //protected byte str_q[$];
     protected string str_q;
 
@@ -62,6 +62,7 @@ class JSONStringBuffer;
     // " to /"
     // / to //
     extern function void pushRawString(string str); 
+    extern function void addIndents(int unsigned level); 
 endclass
 
 
@@ -139,6 +140,20 @@ function void JSONStringBuffer::pushRawString (
         ch_q.push_back(str[i]);
     end
     ch_q.push_back("\"");
+    tmp_str = {>>{ch_q}};
+    str_q = {str_q, tmp_str};
+endfunction
+
+function void JSONStringBuffer::addIndents (int unsigned level);
+    byte ch_q[$];
+    string tmp_str;
+    if (indent == 0) begin
+        return;
+    end
+    ch_q.push_back("\n");
+    repeat(level*indent) begin
+        ch_q.push_back(" ");
+    end
     tmp_str = {>>{ch_q}};
     str_q = {str_q, tmp_str};
 endfunction
