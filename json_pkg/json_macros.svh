@@ -18,5 +18,8 @@ $display({"[JSON_WARN]", prt_str});
 $display({"[JSON_ERROR]", prt_str});
 
 `define JSON_FATAL(prt_str) \
-$display({"[JSON_FATAL]", prt_str});
+begin \
+    $display({"[JSON_FATAL]", prt_str}); \
+    $finish(-1); \
+end
 

@@ -60,16 +60,19 @@ class json_file_test extends TestPrototype;
             JSONValue _jvo, jv_o, jv_str, jv_num;
 
             _jvo = jv.getObjectMember("o");
-            jv_o = new(2);
-            jv_o.setObject();
+            jv_o = _jvo.createMemberOfObject("inner_obj", JSONValue::JSON_OBJECT);
+            //jv_o = new(2);
+            //jv_o.setObject();
             //jv.addMemberToObject("inner_obj", jv_o);
-            _jvo.addMemberToObject("inner_obj", jv_o);
-            jv_str = new(3);
+            //_jvo.addMemberToObject("inner_obj", jv_o);
+            //jv_str = new(3);
+            jv_str = jv_o.createMemberOfObject("auth", JSONValue::JSON_STRING);
             jv_str.setString("zcr");
-            jv_num = new(3);
+            //jv_num = new(3);
+            jv_num = jv_o.createMemberOfObject("grade", JSONValue::JSON_NUMBER);
             jv_num.setNumber(5);
-            jv_o.addMemberToObject("auth", jv_str);
-            jv_o.addMemberToObject("grade", jv_num);
+            //jv_o.addMemberToObject("auth", jv_str);
+            //jv_o.addMemberToObject("grade", jv_num);
         end
         `EXPECT_EQ_INT(json_pkg::DUMP_OK, jv.dumpToFile({base_dir, "/test/json_files/modified_object.json"}))
         `EXPECT_EQ_INT(json_pkg::DUMP_OK, jv.dumpToFile({base_dir, "/test/json_files/modified_object_i2.json"}, 2))

@@ -61,6 +61,9 @@ class JSONValue;
     extern function void addMemberToObject(string key, JSONValue val);
     extern function void setArray();
     extern function void addValueToArray(JSONValue val);
+    // create member with correct depth
+    extern function JSONValue createMemberOfObject(string key, JSONType jtype = JSON_NULL);
+    extern function JSONValue createValueOfArray(JSONType jtype = JSON_NULL);
 
     extern function real getNumber ();
     extern function string getString ();
@@ -407,6 +410,10 @@ function void JSONValue::addMemberToObject (
         `JSON_ERROR($sformatf("parent depth: %0d, child depth: %0d", this_depth, val.this_depth))
     end
 
+    if (this_type != JSON_OBJECT) begin
+        `JSON_ERROR($sformatf("Trying to add member to %s node", this_type.name()))
+    end
+
     if (this_object.exists(_str)) begin
         `JSON_WARN($sformatf("Member with key: %s exists in this object. Parser would override it!!", _str))
     end
@@ -420,11 +427,55 @@ endfunction
 function void JSONValue::addValueToArray (
     JSONValue val
 );
+    if (this_type != JSON_ARRAY) begin
+        `JSON_ERROR($sformatf("Trying to add member to %s node", this_type.name()))
+    end
+
     if (this_depth != val.this_depth - 1) begin
         `JSON_ERROR($sformatf("parent depth: %0d, child depth: %0d", this_depth, val.this_depth))
     end
 
     this_array.push_back(val);
+endfunction
+
+function JSONValue JSONValue::createMemberOfObject (
+    string key, JSONType jtype = JSON_NULL
+);
+    JSONValue jv = new(this_depth + 1);
+    case(jtype)
+        JSON_NULL: jv.setNull();
+        JSON_TRUE: jv.setTrue();
+        JSON_FALSE: jv.setTrue();
+        JSON_NUMBER: jv.setNumber(0.0);
+        JSON_STRING: jv.setString("<defalut_string>");
+        JSON_ARRAY: jv.setArray();
+        JSON_OBJECT: jv.setObject();
+        default: begin
+            `JSON_FATAL("Error type!!")
+        end
+    endcase
+    this.addMemberToObject(key, jv);
+    return jv;
+endfunction
+
+function JSONValue JSONValue::createValueOfArray (
+    JSONType jtype = JSON_NULL
+);
+    JSONValue jv = new(this_depth + 1);
+    case(jtype)
+        JSON_NULL: jv.setNull();
+        JSON_TRUE: jv.setTrue();
+        JSON_FALSE: jv.setTrue();
+        JSON_NUMBER: jv.setNumber(0.0);
+        JSON_STRING: jv.setString("<defalut_string>");
+        JSON_ARRAY: jv.setArray();
+        JSON_OBJECT: jv.setObject();
+        default: begin
+            `JSON_FATAL("Error type!!")
+        end
+    endcase
+    this.addValueToArray(jv);
+    return jv;
 endfunction
 
 function JSONValue::JSONType JSONValue::getType ();

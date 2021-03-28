@@ -55,11 +55,11 @@ JSONinSV实现的功能规格主要是三个部分:
 ```
 3. 数字统一解析为SystemVerilog中的real类型, 即IEEE574定义的64bit双精度浮点数. 需要支持大整数和高精度数据等超过64bit双精度浮点数表示的数据时, 建议用户使用字符串表示数值并在上层应用中实现.
 4. 列表, 支持空列表.
-5. 对象, 支持空对象. 对于key重复的值, 会使用后面的key-value成员进行覆盖.
+5. 对象, 支持空对象. 对于key重复的值, 会使用后面的key-value成员进行覆盖. **需要注意的是, JSONinSV目前直接使用SystemVerilog的联合数组实现对象, 因此JSON文本中的对象成员会经过key排序存放, 不能保证存放顺序与JSON文本中成员一致.**
 
 文本输出和对象编辑器部分, 支持如下规格:
 
-1. 支持格式化输出, 并支持配置indent;
+1. 支持格式化输出, 并支持配置indent进行层级化排版输出;
 2. 支持复合节点的回环检查;
 
 ### 性能考虑
@@ -102,6 +102,10 @@ PARSE\_MISS\_COMMA\_OR\_CURLY\_BRACKET| 对象中缺少逗号或花括号
 PARSE\_MISS\_QUOTATION\_MARK| 缺少引号
 PARSE\_MISS\_COMMA\_OR\_SQUARE\_BRACKET| 数组中缺少逗号或方括号
 FILE\_OPEN\_ERROR| 文件打开失败
+DUMP\_OK| JSON输出成功
+STRINGIFY\_OK| JSON值字符串化成功
+CHECK\_OK| JSON值检查成功
+CHECK\_DEPTH\_ERROR| JSON值层级检查失败
 
 ### 用户函数
 
@@ -141,6 +145,13 @@ setter和getter函数:
 `void addMemberToObject(string key, JSONValue val)` | 在当前JSONValue的对象中根据`key-value`添加成员, 如果当前类型不匹配会输出错误信息
 `void setArray()` | 设置当前JSONValue节点为数组
 `void addValueToArray(JSONValue val)` | 在当前JSONValue的数组中添加`val`成员, 如果当前类型不匹配会输出错误信息
+
+子成员创建函数, 用于创建符合层级约束的`JSON_ARRAY`和`JSON_OBJECT`节点成员:
+
+原型定义 | 说明
+--|--
+`JSONValue createMemberOfObject(string key, JSONType jtype = JSON_NULL)` | 创建`JSON_OBJECT`节点的成员, 使用参数`key`作为索引, 使用`jtype`作为成员节点的类型, 需要注意如果是`JSON_STRING`和`JSON_NUMBER`类型, 会使用默认值进行值set, 会需要在创建后另外调用setter函数进行值配置
+`JSONValue createValueOfArray(JSONType jtype = JSON_NULL)` | 创建`JSON_ARRAY`节点的成员, 使用`jtype`作为成员节点的类型, 需要注意如果是`JSON_STRING`和`JSON_NUMBER`类型, 会使用默认值进行值set, 会需要在创建后另外调用setter函数进行值配置
 
 
 ## 使用说明
@@ -222,6 +233,8 @@ $(EDA_SIM_CMD) +TEST=json_file_test +DIR=[rel_path]
 ```
 
 `+DIR=`参数进行运行时调整.
+
+此外, 使用`+TEST=test_all`可以连续运行所有用例.
 
 ### 仿真器适配情况
 
