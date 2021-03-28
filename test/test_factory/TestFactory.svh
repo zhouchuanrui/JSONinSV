@@ -6,6 +6,10 @@
 //Revisions: 
 //2017-4-18 23:06:32: created
 //
+//2021/3/28 12:39:29: update
+//  add run_all_test with user option:
+//  +TEST=test_all to call
+//
 
 `ifndef __TEST_FACTORY_SVH__
 `define __TEST_FACTORY_SVH__
@@ -38,6 +42,16 @@ class TestFactory;
         tests[test_name].test();
     endtask: run_test
 
+    static task run_all_test ();
+        string tn;
+        if(tests.first(tn)) begin
+            $display("Running test: %s", tn);
+            do begin
+                tests[tn].test();
+            end while (tests.next(tn));
+        end
+    endtask
+        
     static function void listTests ();
         string tn;
         if(tests.first(tn)) begin
@@ -66,7 +80,11 @@ task factory_run_test ();
     string tn;
 
     if($value$plusargs("TEST=%s", tn)) begin
-        TestFactory::run_test(tn);
+        if (tn == "test_all") begin
+            TestFactory::run_all_test();
+        end else begin
+            TestFactory::run_test(tn);
+        end
     end
     else begin
         $display("Please offer a +TEST=<test_name> in simulation arguments");

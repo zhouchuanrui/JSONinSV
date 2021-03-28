@@ -26,6 +26,8 @@ package json_pkg;
         VALUE_TYPE_ERROR,
         DUMP_OK,
         CHECK_OK,
+        CHECK_VALUE_RECURSION,
+        CHECK_DEPTH_ERROR,
         STRINGIFY_OK,
         RSV
     } JSONStatus;
