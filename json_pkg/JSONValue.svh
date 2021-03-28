@@ -41,9 +41,9 @@ class JSONValue;
     protected JSONValue this_array[$];
     protected string this_string;
     protected real this_number;
-    protected int this_depth; // depth of this value node, starts from 0
+    protected int unsigned this_depth; // depth of this value node, starts from 0
 
-    function new(int depth = 0);
+    function new(int unsigned depth = 0);
         this_type = JSON_NULL;
         this_depth = depth;
     endfunction
@@ -89,10 +89,12 @@ class JSONValue;
     extern function JSONStatus parseFalse(JSONContext jc);
     extern function JSONStatus parseStringLiteral(JSONContext jc, output string str);
     // check
-    extern function JSONStatus checkLoop(JSONChecker jc, int valid_depth=0);
+    extern function JSONStatus checkDepth(int valid_depth=0);
     // stringify 
     extern function JSONStatus toString(JSONStringBuffer jsb);
 
+    // developing methods
+    extern function JSONStatus checkLoop(JSONChecker jc, int valid_depth=0);
 endclass
 
 function JSONStatus JSONValue::loads (string json_txt);
@@ -401,6 +403,10 @@ function void JSONValue::addMemberToObject (
     // M-tool need to do substr
     _str = key.substr(0, key.len()-1);
 
+    if (this_depth != val.this_depth - 1) begin
+        `JSON_ERROR($sformatf("parent depth: %0d, child depth: %0d", this_depth, val.this_depth))
+    end
+
     if (this_object.exists(_str)) begin
         `JSON_WARN($sformatf("Member with key: %s exists in this object. Parser would override it!!", _str))
     end
@@ -414,6 +420,10 @@ endfunction
 function void JSONValue::addValueToArray (
     JSONValue val
 );
+    if (this_depth != val.this_depth - 1) begin
+        `JSON_ERROR($sformatf("parent depth: %0d, child depth: %0d", this_depth, val.this_depth))
+    end
+
     this_array.push_back(val);
 endfunction
 
@@ -521,7 +531,8 @@ function JSONStatus JSONValue::dumps (
     JSONStringBuffer jsb = new(indent);
     JSONChecker jc = new();
     json_txt = "";
-    ret = this.checkLoop(jc, this_depth);
+    //ret = this.checkLoop(jc, this_depth);
+    ret = this.checkDepth(this_depth);
     if (ret != CHECK_OK) begin
         return ret;
     end
@@ -533,11 +544,36 @@ function JSONStatus JSONValue::dumps (
     return DUMP_OK;
 endfunction
 
-function JSONStatus JSONValue::checkLoop (
-    JSONChecker jc,
+function JSONStatus JSONValue::checkDepth (
     int valid_depth = 0
 );
-    return CHECK_OK;
+    JSONStatus ret = CHECK_OK;
+    
+    if (this_depth != valid_depth) begin
+        `JSON_ERROR($sformatf("depth %0d != %0d of node: %s", 
+            this_depth, valid_depth, this_type.name()
+        ))
+        return CHECK_DEPTH_ERROR;
+    end
+
+    if (this_type == JSON_ARRAY) begin
+        foreach(this_array[i]) begin
+            ret = this_array[i].checkDepth(this_depth + 1);
+            if (ret != CHECK_OK) begin
+                return ret;
+            end
+        end   
+    end
+
+    if (this_type == JSON_OBJECT) begin
+        foreach(this_object[k]) begin
+            ret = this_object[k].checkDepth(this_depth + 1);
+            if (ret != CHECK_OK) begin
+                return ret;
+            end
+        end
+    end
+    return ret;
 endfunction
 
 function JSONStatus JSONValue::toString (JSONStringBuffer jsb);
@@ -639,5 +675,13 @@ function JSONStatus JSONValue::dumpToFile (
     $fdisplay(jfd, "%s", json_txt);
     $fclose(jfd);
     return ret;
+endfunction
+
+// developing methods
+function JSONStatus JSONValue::checkLoop (
+    JSONChecker jc,
+    int valid_depth = 0
+);
+    return CHECK_OK;
 endfunction
 

@@ -32,18 +32,6 @@ endclass
 
 typedef class JSONValue;
 
-class JSONChecker;
-
-    function new(int depth=0);
-    endfunction
-
-    // internal properties
-    protected JSONValue jv_oa_q[$]; // store handles of objects, arrays
-    protected int current_depth;
-
-    // APIs
-endclass
-
 class JSONStringBuffer;
 
     function new(int unsigned indent = 0);
@@ -157,4 +145,17 @@ function void JSONStringBuffer::addIndents (int unsigned level);
     tmp_str = {>>{ch_q}};
     str_q = {str_q, tmp_str};
 endfunction
+
+// developing class
+class JSONChecker;
+
+    function new(int depth=0);
+    endfunction
+
+    // internal properties
+    protected JSONValue jv_oa_q[$]; // store handles of objects, arrays
+    protected int current_depth;
+
+    // APIs
+endclass
 
