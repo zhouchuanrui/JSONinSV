@@ -20,13 +20,13 @@ class JSONContext;
     protected int current_idx;
 
     // APIs
-    extern function byte peekChar();
-    extern function byte popChar();
-    extern function int getIndex();
-    extern function void incIndex();
-    extern function string getSubString(int idx_st, int idx_end);
-    extern function void skipWhiteSpace();
-    extern function bit isEnd();
+    extern virtual function byte peekChar();
+    extern virtual function byte popChar();
+    extern virtual function int getIndex();
+    extern virtual function void incIndex();
+    extern virtual function string getSubString(int idx_st, int idx_end);
+    extern virtual function void skipWhiteSpace();
+    extern virtual function bit isEnd();
 
 endclass
 
@@ -44,13 +44,13 @@ class JSONStringBuffer;
     protected string str_q;
 
     // APIs
-    extern function string getString();
-    extern function void pushString(string str);
+    extern virtual function string getString();
+    extern virtual function void pushString(string str);
     // push interpreted string:
     // " to /"
     // / to //
-    extern function void pushRawString(string str); 
-    extern function void addIndents(int unsigned level); 
+    extern virtual function void pushRawString(string str); 
+    extern virtual function void addIndents(int unsigned level); 
 endclass
 
 

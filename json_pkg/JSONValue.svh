@@ -49,55 +49,55 @@ class JSONValue;
     endfunction
 
     // APIs
-    extern function JSONType getType();
-    extern function string getTypeString();
+    extern virtual function JSONType getType();
+    extern virtual function string getTypeString();
 
-    extern function void setNull();
-    extern function void setTrue();
-    extern function void setFalse();
-    extern function void setNumber(real number);
-    extern function void setString(string str);
-    extern function void setObject();
-    extern function void addMemberToObject(string key, JSONValue val);
-    extern function void setArray();
-    extern function void addValueToArray(JSONValue val);
+    extern virtual function void setNull();
+    extern virtual function void setTrue();
+    extern virtual function void setFalse();
+    extern virtual function void setNumber(real number);
+    extern virtual function void setString(string str);
+    extern virtual function void setObject();
+    extern virtual function void addMemberToObject(string key, JSONValue val);
+    extern virtual function void setArray();
+    extern virtual function void addValueToArray(JSONValue val);
     // create member with correct depth
-    extern function JSONValue createMemberOfObject(string key, JSONType jtype = JSON_NULL);
-    extern function JSONValue createValueOfArray(JSONType jtype = JSON_NULL);
+    extern virtual function JSONValue createMemberOfObject(string key, JSONType jtype = JSON_NULL);
+    extern virtual function JSONValue createValueOfArray(JSONType jtype = JSON_NULL);
 
-    extern function real getNumber ();
-    extern function string getString ();
-    extern function int getArraySize ();
-    extern function JSONValue getArrayElement (int idx);
-    extern function int getObjectSize ();
-    extern function JSONValue getObjectMember (string key);
+    extern virtual function real getNumber ();
+    extern virtual function string getString ();
+    extern virtual function int getArraySize ();
+    extern virtual function JSONValue getArrayElement (int idx);
+    extern virtual function int getObjectSize ();
+    extern virtual function JSONValue getObjectMember (string key);
 
     // parser APIs
-    extern function JSONStatus loads(string json_txt);
-    extern function JSONStatus loadFromFile(string json_file);
+    extern virtual function JSONStatus loads(string json_txt);
+    extern virtual function JSONStatus loadFromFile(string json_file);
 
     // dumper APIs
-    extern function JSONStatus dumps(output string json_txt, input int unsigned indent = 0);
-    extern function JSONStatus dumpToFile(string json_file, int unsigned indent=0);
+    extern virtual function JSONStatus dumps(output string json_txt, input int unsigned indent = 0);
+    extern virtual function JSONStatus dumpToFile(string json_file, int unsigned indent=0);
 
     // internal methods
     // parse 
-    extern function JSONStatus parseValue(JSONContext jc);
-    extern function JSONStatus parseObject(JSONContext jc);
-    extern function JSONStatus parseArray(JSONContext jc);
-    extern function JSONStatus parseString(JSONContext jc);
-    extern function JSONStatus parseNumber(JSONContext jc);
-    extern function JSONStatus parseNull(JSONContext jc);
-    extern function JSONStatus parseTrue(JSONContext jc);
-    extern function JSONStatus parseFalse(JSONContext jc);
-    extern function JSONStatus parseStringLiteral(JSONContext jc, output string str);
+    extern protected virtual function JSONStatus parseValue(JSONContext jc);
+    extern protected virtual function JSONStatus parseObject(JSONContext jc);
+    extern protected virtual function JSONStatus parseArray(JSONContext jc);
+    extern protected virtual function JSONStatus parseString(JSONContext jc);
+    extern protected virtual function JSONStatus parseNumber(JSONContext jc);
+    extern protected virtual function JSONStatus parseNull(JSONContext jc);
+    extern protected virtual function JSONStatus parseTrue(JSONContext jc);
+    extern protected virtual function JSONStatus parseFalse(JSONContext jc);
+    extern protected virtual function JSONStatus parseStringLiteral(JSONContext jc, output string str);
     // check
-    extern function JSONStatus checkDepth(int valid_depth=0);
+    extern protected virtual function JSONStatus checkDepth(int valid_depth=0);
     // stringify 
-    extern function JSONStatus toString(JSONStringBuffer jsb);
+    extern protected virtual function JSONStatus toString(JSONStringBuffer jsb);
 
     // developing methods
-    extern function JSONStatus checkLoop(JSONChecker jc, int valid_depth=0);
+    extern protected virtual function JSONStatus checkLoop(JSONChecker jc, int valid_depth=0);
 endclass
 
 function JSONStatus JSONValue::loads (string json_txt);
@@ -641,7 +641,11 @@ function JSONStatus JSONValue::toString (JSONStringBuffer jsb);
         end
         JSON_NUMBER: begin
             string str;
+            `ifdef USE_REALTOA
             str.realtoa(this_number);
+            `else
+            str = $sformatf("%.17g", this_number);
+            `endif
             jsb.pushString(str);
         end
         JSON_STRING: begin
