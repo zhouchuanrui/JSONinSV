@@ -80,6 +80,12 @@ class json_file_test extends TestPrototype;
         `EXPECT_EQ_INT(json_pkg::DUMP_OK, jv.dumpToFile({base_dir, "/test/json_files/modified_object_i2.json"}, 2))
         `EXPECT_EQ_INT(json_pkg::DUMP_OK, jv.dumpToFile({base_dir, "/test/json_files/modified_object_i4.json"}, 4))
 
+        jv.getObjectMember("a").removeValueOfArray(2);
+        jv.getObjectMember("o").removeMemberOfObject("1");
+        `EXPECT_EQ_INT(json_pkg::DUMP_OK, jv.dumpToFile({base_dir, "/test/json_files/removed_object.json"}))
+        `EXPECT_EQ_INT(json_pkg::DUMP_OK, jv.dumpToFile({base_dir, "/test/json_files/removed_object_i2.json"}, 2))
+        `EXPECT_EQ_INT(json_pkg::DUMP_OK, jv.dumpToFile({base_dir, "/test/json_files/removed_object_i4.json"}, 4))
+
         `REPORT_TEST()
     endtask
 
