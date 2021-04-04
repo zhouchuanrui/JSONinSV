@@ -153,6 +153,12 @@ setter和getter函数:
 `JSONValue createMemberOfObject(string key, JSONType jtype = JSON_NULL)` | 创建`JSON_OBJECT`节点的成员, 使用参数`key`作为索引, 使用`jtype`作为成员节点的类型, 需要注意如果是`JSON_STRING`和`JSON_NUMBER`类型, 会使用默认值进行值set, 会需要在创建后另外调用setter函数进行值配置
 `JSONValue createValueOfArray(JSONType jtype = JSON_NULL)` | 创建`JSON_ARRAY`节点的成员, 使用`jtype`作为成员节点的类型, 需要注意如果是`JSON_STRING`和`JSON_NUMBER`类型, 会使用默认值进行值set, 会需要在创建后另外调用setter函数进行值配置
 
+成员删除函数:
+
+原型定义 | 说明
+--|--
+`void removeMemberOfObject(string key)` | 根据`key`删除本对象节点的对应成员
+`void removeValueOfArray(int unsigned idx)` | 根据`idx`删除本数组节点的对应JSON值
 
 ## 使用说明
 

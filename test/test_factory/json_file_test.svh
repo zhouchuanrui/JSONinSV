@@ -73,6 +73,8 @@ class json_file_test extends TestPrototype;
             jv_num.setNumber(5);
             //jv_o.addMemberToObject("auth", jv_str);
             //jv_o.addMemberToObject("grade", jv_num);
+            jv_str = jv.getObjectMember("a").createValueOfArray(JSONValue::JSON_STRING);
+            jv_str.setString("array_added_text");
         end
         `EXPECT_EQ_INT(json_pkg::DUMP_OK, jv.dumpToFile({base_dir, "/test/json_files/modified_object.json"}))
         `EXPECT_EQ_INT(json_pkg::DUMP_OK, jv.dumpToFile({base_dir, "/test/json_files/modified_object_i2.json"}, 2))

@@ -2,14 +2,12 @@
   "a": [
     1, 
     2, 
-    3, 
     "array_added_text"
   ], 
   "f": false, 
   "i": 123, 
   "n": null, 
   "o": {
-    "1": 1, 
     "2": 2, 
     "3": 3, 
     "inner_obj": {

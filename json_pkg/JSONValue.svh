@@ -14,6 +14,10 @@
 //  update loadFromFile; TODO:
 //  testdir dealing
 //
+//
+//2021/4/4 8:07:25: 
+// add value-remove APIs
+//
 
 typedef class JSONContext;
 
@@ -52,6 +56,15 @@ class JSONValue;
     extern virtual function JSONType getType();
     extern virtual function string getTypeString();
 
+    // getter APIs
+    extern virtual function real getNumber ();
+    extern virtual function string getString ();
+    extern virtual function int getArraySize ();
+    extern virtual function JSONValue getArrayElement (int idx);
+    extern virtual function int getObjectSize ();
+    extern virtual function JSONValue getObjectMember (string key);
+
+    // setter/editor APIs
     extern virtual function void setNull();
     extern virtual function void setTrue();
     extern virtual function void setFalse();
@@ -64,13 +77,9 @@ class JSONValue;
     // create member with correct depth
     extern virtual function JSONValue createMemberOfObject(string key, JSONType jtype = JSON_NULL);
     extern virtual function JSONValue createValueOfArray(JSONType jtype = JSON_NULL);
-
-    extern virtual function real getNumber ();
-    extern virtual function string getString ();
-    extern virtual function int getArraySize ();
-    extern virtual function JSONValue getArrayElement (int idx);
-    extern virtual function int getObjectSize ();
-    extern virtual function JSONValue getObjectMember (string key);
+    // remove-value 
+    extern virtual function void removeMemberOfObject(string key);
+    extern virtual function void removeValueOfArray(int unsigned idx);
 
     // parser APIs
     extern virtual function JSONStatus loads(string json_txt);
@@ -476,6 +485,35 @@ function JSONValue JSONValue::createValueOfArray (
     endcase
     this.addValueToArray(jv);
     return jv;
+endfunction
+
+function void JSONValue::removeMemberOfObject (
+    string key
+);
+    if (this_type != JSON_OBJECT) begin
+        `JSON_ERROR($sformatf("Call removeMemberOfObject of wrong JSONValue type: %s", this_type.name()))
+        return;
+    end
+    if (! this_object.exists(key)) begin
+        `JSON_WARN($sformatf("Cannot remove non-exist member: %s", this_type.name()))
+        return;
+    end
+    this_object.delete(key);
+endfunction
+
+function void JSONValue::removeValueOfArray (
+    int unsigned idx
+);
+    if (this_type != JSON_ARRAY) begin
+        `JSON_ERROR($sformatf("Call removeValueOfArray of wrong JSONValue type: %s", this_type.name()))
+        return;
+    end
+
+    if (idx >= this_array.size()) begin
+        `JSON_WARN($sformatf("Index: %0d exceeds!!", idx))
+        return;
+    end
+    this_array.delete(idx);
 endfunction
 
 function JSONValue::JSONType JSONValue::getType ();
