@@ -19,6 +19,9 @@
 // add value-remove APIs
 //
 
+`ifndef __JSONVALUE_SVH__
+`define __JSONVALUE_SVH__
+
 typedef class JSONContext;
 
 // the JSON value class
@@ -777,4 +780,6 @@ function JSONStatus JSONValue::checkLoop (
 );
     return CHECK_OK;
 endfunction
+
+`endif
 

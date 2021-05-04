@@ -8,6 +8,9 @@
 //2021/1/26 7:35:59: created
 //
 
+`ifndef __JSONUTILS_SVH__
+`define __JSONUTILS_SVH__
+
 class JSONContext;
     
     function new(string json_txt = "NULL");
@@ -158,4 +161,6 @@ class JSONChecker;
 
     // APIs
 endclass
+
+`endif
 

@@ -8,6 +8,9 @@
 //2021/1/26 7:31:43: created
 //
 
+`ifndef __JSON_MACROS_SVH__
+`define __JSON_MACROS_SVH__
+
 `define JSON_LOG(prt_str)  \
 $display({"[JSON_LOG]", prt_str});
 
@@ -22,4 +25,6 @@ begin \
     $display({"[JSON_FATAL]", prt_str}); \
     $finish(-1); \
 end
+
+`endif
 
