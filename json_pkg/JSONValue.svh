@@ -457,7 +457,7 @@ function JSONValue JSONValue::createMemberOfObject (
     case(jtype)
         JSON_NULL: jv.setNull();
         JSON_TRUE: jv.setTrue();
-        JSON_FALSE: jv.setTrue();
+        JSON_FALSE: jv.setFalse();
         JSON_NUMBER: jv.setNumber(0.0);
         JSON_STRING: jv.setString("<defalut_string>");
         JSON_ARRAY: jv.setArray();
@@ -477,7 +477,7 @@ function JSONValue JSONValue::createValueOfArray (
     case(jtype)
         JSON_NULL: jv.setNull();
         JSON_TRUE: jv.setTrue();
-        JSON_FALSE: jv.setTrue();
+        JSON_FALSE: jv.setFalse();
         JSON_NUMBER: jv.setNumber(0.0);
         JSON_STRING: jv.setString("<defalut_string>");
         JSON_ARRAY: jv.setArray();
