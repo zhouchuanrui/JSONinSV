@@ -66,6 +66,7 @@ class JSONValue;
     extern virtual function JSONValue getArrayElement (int idx);
     extern virtual function int getObjectSize ();
     extern virtual function JSONValue getObjectMember (string key);
+    extern virtual function void getObjectKeys (output string keys[$]);
 
     // setter/editor APIs
     extern virtual function void setNull();
@@ -594,6 +595,19 @@ function JSONValue JSONValue::getObjectMember (
         end
     end
     return this_object[key];
+endfunction
+
+function void JSONValue::getObjectKeys(
+    output string keys[$]
+);
+    if (this_type != JSON_OBJECT) begin
+        `JSON_ERROR($sformatf("Try to get object keys from JSON node with type: %s!!",
+            this_type.name()
+        ))
+    end
+    foreach (this_object[key]) begin
+        keys.push_back(key);
+    end
 endfunction
 
 function JSONStatus JSONValue::loadFromFile (
